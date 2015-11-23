@@ -1,6 +1,6 @@
 # Wikidata-Toolkit-Examples
 
-This module contains example programs that show some of the features
+This repository contains example programs that show some of the features
 of Wikidata Toolkit.
 
 Overview and Settings
