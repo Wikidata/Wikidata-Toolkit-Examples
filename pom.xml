@@ -9,7 +9,7 @@
   <properties>
     <slf4jVersion>1.7.10</slf4jVersion>
     <apacheCommonsCompressVersion>1.9</apacheCommonsCompressVersion>
-    <wikidataToolkitVersion>0.5.0</wikidataToolkitVersion>
+    <wikidataToolkitVersion>0.6.0</wikidataToolkitVersion>
   </properties>
   
   <dependencies>
