@@ -1,2 +1,53 @@
-/bin
-/target
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.metadata
+.settings/
+local.properties
+
+# NetBeans
+nbbuild/
+nbdist/
+nbproject/
+nb-configuration.xml
+nbactions.xml
+
+# Maven, etc.
+out/
+target/
+
+# WDTK dumpfile download directory
+dumpfiles/
+# WDTK example result directory
+results/ 
+
+# Don't apply the above to src/ where Java requires
+# subdirectories named according to package names.
+# We do not want to forbid things like "dumpfiles" in
+# package names. 
+!src/
+
+# Use as directory for local testing code
+**/src/local/
+
+# General
+*.pyc
+*~
+*.bak
+*.sw[o,p]
+*.tmp
+.DS_Store
+Thumbs.db
