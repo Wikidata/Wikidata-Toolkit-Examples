@@ -39,7 +39,7 @@ public class LocalDumpFileExample {
 	/**
 	 * Path to the dump that should be processed
 	 */
-	private final static String DUMP_FILE = "./src/resources/sample-dump-20150815.json.gz";
+	private final static String DUMP_FILE = "./resources/sample-dump-20150815.json.gz";
 
 	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
