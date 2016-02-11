@@ -23,19 +23,21 @@ package examples;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
 import org.wikidata.wdtk.datamodel.interfaces.StringValue;
+import org.wikidata.wdtk.datamodel.interfaces.Value;
 
 /**
  * This simple {@link EntityDocumentProcessor} finds all items with a GND
- * identifier (property P227), and extracts for each of them the id, GND value,
- * as well as English and German labels and Wikipedia articles, if any. The
- * results are written to a CSV file "extracted-data.csv". The property can be
- * modified by changing the value for
- * {@link DataExtractionProcessor#numberPropertyId}. The current code only
+ * identifier (property P227) who are also humans (P31 with value Q5), and
+ * extracts for each of them the id, GND value, as well as English and German
+ * labels and Wikipedia articles, if any. The results are written to a CSV file
+ * "extracted-data.csv". The property can be modified by changing the value for
+ * {@link DataExtractionProcessor#extractPropertyId}. The current code only
  * extracts the first value for this property if many are given.
  *
  *
@@ -44,7 +46,9 @@ import org.wikidata.wdtk.datamodel.interfaces.StringValue;
  */
 public class DataExtractionProcessor implements EntityDocumentProcessor {
 
-	static final String numberPropertyId = "P227"; // "GND identifier"
+	static final String extractPropertyId = "P227"; // "GND identifier"
+	static final String filterPropertyId = "P31"; // "instance of"
+	static final Value filterValue = Datamodel.makeWikidataItemIdValue("Q5"); // "human"
 
 	int itemsWithPropertyCount = 0;
 	int itemCount = 0;
@@ -79,9 +83,13 @@ public class DataExtractionProcessor implements EntityDocumentProcessor {
 	public void processItemDocument(ItemDocument itemDocument) {
 		this.itemCount++;
 
+		if (!itemDocument.hasStatementValue(filterPropertyId, filterValue)) {
+			return;
+		}
+
 		// Find the first value for this property, if any:
 		StringValue stringValue = itemDocument
-				.findStatementStringValue(numberPropertyId);
+				.findStatementStringValue(extractPropertyId);
 
 		// If a value was found, write the data:
 		if (stringValue != null) {
@@ -157,8 +165,8 @@ public class DataExtractionProcessor implements EntityDocumentProcessor {
 		System.out
 				.println("*** This program will download and process dumps from Wikidata.");
 		System.out
-				.println("*** It will scan the dump to find the item with values for property");
-		System.out.println("*** " + numberPropertyId
+				.println("*** It will scan the dump to find items with values for property");
+		System.out.println("*** " + extractPropertyId
 				+ " and print some data for these items to a CSV file. ");
 		System.out.println("*** See source code for further details.");
 		System.out
