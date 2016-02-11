@@ -36,10 +36,10 @@ import org.wikidata.wdtk.datamodel.interfaces.Value;
  * identifier (property P227) who are also humans (P31 with value Q5), and
  * extracts for each of them the id, GND value, as well as English and German
  * labels and Wikipedia articles, if any. The results are written to a CSV file
- * "extracted-data.csv". The property can be modified by changing the value for
- * {@link DataExtractionProcessor#extractPropertyId}. The current code only
- * extracts the first value for this property if many are given.
- *
+ * "extracted-data.csv". The extracted property can be modified by changing the
+ * value for {@link DataExtractionProcessor#extractPropertyId}. The current code
+ * only extracts the first value for this property if many are given. The filter
+ * condition (P31::Q5) can also be changed in the code.
  *
  * @author Markus Kroetzsch
  *
@@ -83,6 +83,7 @@ public class DataExtractionProcessor implements EntityDocumentProcessor {
 	public void processItemDocument(ItemDocument itemDocument) {
 		this.itemCount++;
 
+		// Check if the item matches our filter conditions:
 		if (!itemDocument.hasStatementValue(filterPropertyId, filterValue)) {
 			return;
 		}
