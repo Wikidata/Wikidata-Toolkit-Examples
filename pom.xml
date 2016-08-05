@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>wdtk_examples</groupId>
   <artifactId>wdtk_examples</artifactId>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
   
   <name>Wikidata Toolkit Examples</name>
   
   <properties>
     <slf4jVersion>1.7.10</slf4jVersion>
     <apacheCommonsCompressVersion>1.9</apacheCommonsCompressVersion>
-    <wikidataToolkitVersion>0.6.0</wikidataToolkitVersion>
+    <wikidataToolkitVersion>0.7.0</wikidataToolkitVersion>
   </properties>
   
   <dependencies>
