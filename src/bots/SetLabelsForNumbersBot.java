@@ -38,10 +38,7 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
 import org.wikidata.wdtk.util.WebResourceFetcherImpl;
-import org.wikidata.wdtk.wikibaseapi.ApiConnection;
-import org.wikidata.wdtk.wikibaseapi.LoginFailedException;
-import org.wikidata.wdtk.wikibaseapi.WikibaseDataEditor;
-import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
+import org.wikidata.wdtk.wikibaseapi.*;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
 import examples.ExampleHelpers;
@@ -130,10 +127,8 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	 * @param args
 	 * @throws LoginFailedException
 	 * @throws IOException
-	 * @throws MediaWikiApiErrorException
-	 */
-	public static void main(String[] args) throws LoginFailedException,
-			IOException, MediaWikiApiErrorException {
+     */
+	public static void main(String[] args) throws LoginFailedException, IOException {
 		ExampleHelpers.configureLogging();
 		printDocumentation();
 
@@ -172,7 +167,7 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 		WebResourceFetcherImpl
 				.setUserAgent("makrobot 0.3.0; Wikidata Toolkit; Java");
 
-		connection = ApiConnection.getWikidataApiConnection();
+		connection = BasicApiConnection.getWikidataApiConnection();
 		if (BotSettings.USERNAME != null) {
 			connection.login(BotSettings.USERNAME, BotSettings.PASSWORD);
 		}
@@ -196,10 +191,10 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	public void processItemDocument(ItemDocument itemDocument) {
 		if (itemDocument.hasStatement("P1181")) {
 			if (lacksSomeLanguage(itemDocument)) {
-				addLabelForNumbers(itemDocument.getItemId());
+				addLabelForNumbers(itemDocument.getEntityId());
 			} else {
 				System.out.println("*** Labels already complete for "
-						+ itemDocument.getItemId().getId());
+						+ itemDocument.getEntityId().getId());
 			}
 		} // else: ignore items that have no numeric value
 	}
@@ -287,17 +282,15 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 				return;
 			}
 
-			logEntityModification(currentItemDocument.getItemId(),
+			logEntityModification(currentItemDocument.getEntityId(),
 					numberString, languages);
 
 			dataEditor.editItemDocument(itemDocumentBuilder.build(), false,
 					"Set labels to numeric value (Task MB1)");
-		} catch (MediaWikiApiErrorException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (MediaWikiApiErrorException | IOException e) {
 			e.printStackTrace();
 		}
-	}
+    }
 
 	/**
 	 * Returns true if the given item document lacks a label for at least one of

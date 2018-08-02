@@ -267,9 +267,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * settings in {@link ExampleHelpers}.
 	 *
 	 * @param args
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
 		ClassPropertyUsageAnalyzer.printDocumentation();
 
@@ -286,9 +285,9 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 		}
 
 		ClassRecord classRecord = null;
-		if (TOP_LEVEL_CLASSES.contains(itemDocument.getItemId().getId())
-				|| this.classRecords.containsKey(itemDocument.getItemId())) {
-			classRecord = getClassRecord(itemDocument.getItemId());
+		if (TOP_LEVEL_CLASSES.contains(itemDocument.getEntityId().getId())
+				|| this.classRecords.containsKey(itemDocument.getEntityId())) {
+			classRecord = getClassRecord(itemDocument.getEntityId());
 		}
 
 		for (StatementGroup sg : itemDocument.getStatementGroups()) {
@@ -300,7 +299,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 			boolean isInstanceOf = "P31".equals(sg.getProperty().getId());
 			boolean isSubclassOf = "P279".equals(sg.getProperty().getId());
 			if (isSubclassOf && classRecord == null) {
-				classRecord = getClassRecord(itemDocument.getItemId());
+				classRecord = getClassRecord(itemDocument.getEntityId());
 			}
 
 			for (Statement s : sg.getStatements()) {
@@ -363,7 +362,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 		this.countProperties++;
 
 		PropertyRecord propertyRecord = getPropertyRecord(propertyDocument
-				.getPropertyId());
+				.getEntityId());
 		propertyRecord.propertyDocument = propertyDocument;
 	}
 
@@ -499,8 +498,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 					+ ",Uses in qualifiers" + ",Uses in references"
 					+ ",Uses total" + ",Related properties");
 
-			List<Entry<PropertyIdValue, PropertyRecord>> list = new ArrayList<Entry<PropertyIdValue, PropertyRecord>>(
-					this.propertyRecords.entrySet());
+			List<Entry<PropertyIdValue, PropertyRecord>> list = new ArrayList<>(
+							this.propertyRecords.entrySet());
 			Collections.sort(list, new UsageRecordComparator());
 			for (Entry<PropertyIdValue, PropertyRecord> entry : list) {
 				printPropertyRecord(out, entry.getValue(), entry.getKey());
@@ -568,7 +567,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 
 		printRelatedProperties(out, classRecord);
 
-		out.println("");
+		out.println();
 	}
 
 	/**
@@ -751,7 +750,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 
 		printRelatedProperties(out, propertyRecord);
 
-		out.println("");
+		out.println();
 	}
 
 	/**
@@ -808,8 +807,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 */
 	private void printRelatedProperties(PrintStream out, UsageRecord usageRecord) {
 
-		List<ImmutablePair<PropertyIdValue, Double>> list = new ArrayList<ImmutablePair<PropertyIdValue, Double>>(
-				usageRecord.propertyCoCounts.size());
+		List<ImmutablePair<PropertyIdValue, Double>> list = new ArrayList<>(
+						usageRecord.propertyCoCounts.size());
 		for (Entry<PropertyIdValue, Integer> coCountEntry : usageRecord.propertyCoCounts
 				.entrySet()) {
 			double otherThisItemRate = (double) coCountEntry.getValue()
@@ -822,10 +821,10 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 			double otherInvGlobalItemRateStep = 1 / (1 + Math.exp(6 * (-2
 					* (1 - otherGlobalItemRate) + 0.5)));
 
-			list.add(new ImmutablePair<PropertyIdValue, Double>(coCountEntry
-					.getKey(), otherThisItemRateStep
-					* otherInvGlobalItemRateStep * otherThisItemRate
-					/ otherGlobalItemRate));
+			list.add(new ImmutablePair<>(coCountEntry
+							.getKey(), otherThisItemRateStep
+							* otherInvGlobalItemRateStep * otherThisItemRate
+							/ otherGlobalItemRate));
 		}
 
 		Collections.sort(list,

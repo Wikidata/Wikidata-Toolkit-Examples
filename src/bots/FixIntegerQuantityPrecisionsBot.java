@@ -43,10 +43,7 @@ import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
 import org.wikidata.wdtk.datamodel.interfaces.Statement;
 import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
 import org.wikidata.wdtk.util.WebResourceFetcherImpl;
-import org.wikidata.wdtk.wikibaseapi.ApiConnection;
-import org.wikidata.wdtk.wikibaseapi.LoginFailedException;
-import org.wikidata.wdtk.wikibaseapi.WikibaseDataEditor;
-import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
+import org.wikidata.wdtk.wikibaseapi.*;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
 import examples.ExampleHelpers;
@@ -223,7 +220,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 		WebResourceFetcherImpl
 				.setUserAgent("makrobot 0.4.0; Wikidata Toolkit; Java");
 
-		connection = ApiConnection.getWikidataApiConnection();
+		connection = BasicApiConnection.getWikidataApiConnection();
 		if (BotSettings.USERNAME != null) {
 			connection.login(BotSettings.USERNAME, BotSettings.PASSWORD);
 		}
@@ -255,7 +252,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 		for (String propertyId : integerProperties) {
 			if (hasPlusMinusOneValues(itemDocument
 					.findStatementGroup(propertyId))) {
-				fixIntegerPrecisions(itemDocument.getItemId(), propertyId);
+				fixIntegerPrecisions(itemDocument.getEntityId(), propertyId);
 			} // else: ignore items that have no value or only correct values
 				// for the property we consider
 		}
@@ -335,7 +332,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 				return;
 			}
 
-			logEntityModification(currentItemDocument.getItemId(),
+			logEntityModification(currentItemDocument.getEntityId(),
 					updateStatements, propertyId);
 
 			dataEditor.updateStatements(currentItemDocument, updateStatements,
@@ -343,9 +340,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 					"Set exact values for [[Property:" + propertyId + "|"
 							+ propertyId + "]] integer quantities (Task MB2)");
 
-		} catch (MediaWikiApiErrorException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (MediaWikiApiErrorException | IOException e) {
 			e.printStackTrace();
 		}
 	}

@@ -56,9 +56,8 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * offline mode, modify the settings in {@link ExampleHelpers}.
 	 *
 	 * @param args
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
 		LifeExpectancyProcessor.printDocumentation();
 
@@ -156,7 +155,7 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 *
 	 * @param document
 	 *            the document to extract the data from
-	 * @param the
+	 * @param propertyId
 	 *            string id of the property to look for
 	 * @return the year, or Interger.MIN_VALUE if none was found
 	 */

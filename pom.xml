@@ -8,8 +8,7 @@
   
   <properties>
     <slf4jVersion>1.7.10</slf4jVersion>
-    <apacheCommonsCompressVersion>1.9</apacheCommonsCompressVersion>
-    <wikidataToolkitVersion>0.8.0</wikidataToolkitVersion>
+    <wikidataToolkitVersion>0.9.0</wikidataToolkitVersion>
   </properties>
   
   <dependencies>
@@ -32,11 +31,6 @@
       <groupId>org.wikidata.wdtk</groupId>
       <artifactId>wdtk-wikibaseapi</artifactId>
       <version>${wikidataToolkitVersion}</version>
-    </dependency>
-    <dependency>
-	  <groupId>org.apache.commons</groupId>
-	  <artifactId>commons-compress</artifactId>
-	  <version>${apacheCommonsCompressVersion}</version>
     </dependency>
     <dependency> 
       <groupId>org.slf4j</groupId>

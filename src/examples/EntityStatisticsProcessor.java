@@ -95,9 +95,8 @@ class EntityStatisticsProcessor implements EntityDocumentProcessor {
 	 * offline mode, modify the settings in {@link ExampleHelpers}.
 	 *
 	 * @param args
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
 		EntityStatisticsProcessor.printDocumentation();
 

@@ -30,17 +30,10 @@ import java.util.Set;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.helpers.DatamodelConverter;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.Statement;
-import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
-import org.wikidata.wdtk.datamodel.interfaces.Value;
-import org.wikidata.wdtk.datamodel.interfaces.ValueSnak;
-import org.wikidata.wdtk.datamodel.json.jackson.JacksonObjectFactory;
-import org.wikidata.wdtk.datamodel.json.jackson.JsonSerializer;
+import org.wikidata.wdtk.datamodel.helpers.DatamodelFilter;
+import org.wikidata.wdtk.datamodel.helpers.JsonSerializer;
+import org.wikidata.wdtk.datamodel.implementation.DataObjectFactoryImpl;
+import org.wikidata.wdtk.datamodel.interfaces.*;
 
 /**
  * This example illustrates how to create a JSON serialization of some of the
@@ -60,11 +53,7 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 
 	final JsonSerializer jsonSerializer;
 
-	/**
-	 * Object used to make simplified copies of Wikidata documents for
-	 * re-serialization in JSON.
-	 */
-	final DatamodelConverter datamodelConverter;
+	final DatamodelFilter datamodelFilter;
 
 	/**
 	 * Runs the example program.
@@ -91,29 +80,22 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	 *             if there is a problem opening the output file
 	 */
 	public JsonSerializationProcessor() throws IOException {
-		// The converter is used to copy selected parts of the data. We use this
-		// to remove some parts from the documents we serialize. The converter
-		// uses a JacksonObjectFactory to be sure that we create objects for
-		// which we know how to write JSON. A similar converter without the
-		// filtering enabled would also be used to create JSON-serializable
-		// objects from any other implementation of the Wikidata Toolkit
-		// datamodel.
-		this.datamodelConverter = new DatamodelConverter(
-				new JacksonObjectFactory());
-		// Do not copy references at all:
-		this.datamodelConverter.setOptionDeepCopyReferences(false);
+		// The filter is used to copy selected parts of the data. We use this
+		// to remove some parts from the documents we serialize.
+		DocumentDataFilter filter = new DocumentDataFilter();
+
 		// Only copy English labels, descriptions, and aliases:
-		this.datamodelConverter.setOptionLanguageFilter(Collections
-				.singleton("en"));
+		filter.setLanguageFilter(Collections.singleton("en"));
 		// Only copy statements of some properties:
 		Set<PropertyIdValue> propertyFilter = new HashSet<>();
 		propertyFilter.add(Datamodel.makeWikidataPropertyIdValue("P18")); // image
 		propertyFilter.add(Datamodel.makeWikidataPropertyIdValue("P106")); // occupation
 		propertyFilter.add(Datamodel.makeWikidataPropertyIdValue("P569")); // birthdate
-		this.datamodelConverter.setOptionPropertyFilter(propertyFilter);
+		filter.setPropertyFilter(propertyFilter);
 		// Do not copy any sitelinks:
-		this.datamodelConverter.setOptionSiteLinkFilter(Collections
-				.<String> emptySet());
+		filter.setSiteLinkFilter(Collections.<String>emptySet());
+
+		this.datamodelFilter = new DatamodelFilter(new DataObjectFactoryImpl(), new DocumentDataFilter());
 
 		// The (compressed) file we write to.
 		OutputStream outputStream = new GzipCompressorOutputStream(
@@ -128,8 +110,7 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	@Override
 	public void processItemDocument(ItemDocument itemDocument) {
 		if (includeDocument(itemDocument)) {
-			this.jsonSerializer.processItemDocument(this.datamodelConverter
-					.copy(itemDocument));
+			this.jsonSerializer.processItemDocument(this.datamodelFilter.filter(itemDocument));
 		}
 	}
 
@@ -159,10 +140,8 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	 * Closes the output. Should be called after the JSON serialization was
 	 * finished.
 	 *
-	 * @throws IOException
-	 *             if there was a problem closing the output
 	 */
-	public void close() throws IOException {
+	public void close() {
 		System.out.println("Serialized "
 				+ this.jsonSerializer.getEntityDocumentCount()
 				+ " item documents to JSON file " + OUTPUT_FILE_NAME + ".");

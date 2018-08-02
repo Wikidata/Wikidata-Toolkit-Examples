@@ -131,7 +131,7 @@ public class EditOnlineDataExample {
 		ItemDocument newItemDocument = wbde.createItemDocument(itemDocument,
 				"Wikidata Toolkit example test item creation");
 
-		ItemIdValue newItemId = newItemDocument.getItemId();
+		ItemIdValue newItemId = newItemDocument.getEntityId();
 		System.out.println("*** Successfully created a new item "
 				+ newItemId.getId()
 				+ " (see https://test.wikidata.org/w/index.php?title="
@@ -202,7 +202,7 @@ public class EditOnlineDataExample {
 				newItemDocument).getStatements().get(0);
 
 		newItemDocument = wbde.updateStatements(newItemDocument,
-				Arrays.asList(newStatement1), Arrays.asList(statementToDelete),
+                Collections.singletonList(newStatement1), Collections.singletonList(statementToDelete),
 				"Wikidata Toolkit example test statement modification");
 
 		System.out.println("*** Successfully updated statements of "
@@ -250,7 +250,7 @@ public class EditOnlineDataExample {
 				PropertyDocument pd = (PropertyDocument) ed;
 				if (DatatypeIdValue.DT_STRING.equals(pd.getDatatype().getIri())
 						&& pd.getLabels().containsKey("en")) {
-					stringProperties.add(pd.getPropertyId());
+					stringProperties.add(pd.getEntityId());
 					System.out.println("* Found string property "
 							+ pd.getEntityId().getId() + " ("
 							+ pd.getLabels().get("en") + ")");
