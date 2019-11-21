@@ -20,28 +20,22 @@ package bots;
  * #L%
  */
 
+import examples.ExampleHelpers;
+import org.wikidata.wdtk.datamodel.helpers.Datamodel;
+import org.wikidata.wdtk.datamodel.helpers.ItemDocumentBuilder;
+import org.wikidata.wdtk.datamodel.interfaces.*;
+import org.wikidata.wdtk.util.WebResourceFetcherImpl;
+import org.wikidata.wdtk.wikibaseapi.ApiConnection;
+import org.wikidata.wdtk.wikibaseapi.BasicApiConnection;
+import org.wikidata.wdtk.wikibaseapi.WikibaseDataEditor;
+import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
+import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.wikidata.wdtk.datamodel.helpers.Datamodel;
-import org.wikidata.wdtk.datamodel.helpers.ItemDocumentBuilder;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
-import org.wikidata.wdtk.util.WebResourceFetcherImpl;
-import org.wikidata.wdtk.wikibaseapi.*;
-import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
-
-import examples.ExampleHelpers;
+import java.util.*;
 
 /**
  * This bot adds a default label to Wikidata items that are about numbers, by
@@ -76,7 +70,6 @@ import examples.ExampleHelpers;
  * href="https://www.wikidata.org/wiki/User:Makrobot">User:Makrobot</a>).
  *
  * @author Markus Kroetzsch
- *
  */
 public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 
@@ -99,8 +92,8 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	 * label a number with an Arabic numeral string. There are more than those,
 	 * of course.
 	 */
-	final static String[] arabicNumeralLanguages = { "en", "de", "fr", "pt",
-			"it", "es", "nl", "da", "ru" };
+	final static String[] arabicNumeralLanguages = {"en", "de", "fr", "pt",
+			"it", "es", "nl", "da", "ru"};
 
 	/**
 	 * Set of Wikidata items that are commonly used to classify numbers that we
@@ -111,24 +104,21 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	 * correctly labelled as "20".
 	 */
 	final static Set<ItemIdValue> numberClasses = new HashSet<>();
+
 	static {
 		numberClasses.add(Datamodel.makeWikidataItemIdValue("Q12503")); // integer
 		numberClasses.add(Datamodel.makeWikidataItemIdValue("Q13366104")); // even
-																			// number
+		// number
 		numberClasses.add(Datamodel.makeWikidataItemIdValue("Q13366129")); // odd
-																			// number
+		// number
 		numberClasses.add(Datamodel.makeWikidataItemIdValue("Q21199")); // natural
-																		// number
+		// number
 	}
 
 	/**
 	 * Main method to run the bot.
-	 *
-	 * @param args
-	 * @throws LoginFailedException
-	 * @throws IOException
-     */
-	public static void main(String[] args) throws LoginFailedException, IOException {
+	 */
+	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
 		printDocumentation();
 
@@ -143,34 +133,23 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: SetLabelsForNumbersBot");
 		System.out.println("*** ");
-		System.out
-				.println("*** This bot downloads recent Wikidata dumps to locate items about");
-		System.out
-				.println("*** integer numbers, and it adds default labels for these items in ");
-		System.out
-				.println("*** several languages, if there is no label for a language yet.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("*** This bot downloads recent Wikidata dumps to locate items about");
+		System.out.println("*** integer numbers, and it adds default labels for these items in ");
+		System.out.println("*** several languages, if there is no label for a language yet.");
+		System.out.println("********************************************************************");
 	}
 
 	/**
 	 * Constructor.
-	 *
-	 * @throws LoginFailedException
-	 * @throws IOException
 	 */
-	public SetLabelsForNumbersBot() throws LoginFailedException, IOException {
+	public SetLabelsForNumbersBot() throws IOException {
 		WebResourceFetcherImpl
 				.setUserAgent("makrobot 0.3.0; Wikidata Toolkit; Java");
 
 		connection = BasicApiConnection.getWikidataApiConnection();
-		if (BotSettings.USERNAME != null) {
-			connection.login(BotSettings.USERNAME, BotSettings.PASSWORD);
-		}
 		dataEditor = new WikibaseDataEditor(connection, Datamodel.SITE_WIKIDATA);
 		dataEditor.setEditAsBot(BotSettings.EDIT_AS_BOT);
 		dataEditor.disableEditing(); // do no actual edits
@@ -215,8 +194,7 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	 * Fetches the current online data for the given item, and adds numerical
 	 * labels if necessary.
 	 *
-	 * @param itemIdValue
-	 *            the id of the document to inspect
+	 * @param itemIdValue the id of the document to inspect
 	 */
 	protected void addLabelForNumbers(ItemIdValue itemIdValue) {
 
@@ -243,10 +221,9 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 
 			// Check if the item is in a known numeric class:
 			if (!currentItemDocument.hasStatementValue("P31", numberClasses)) {
-				System.out
-						.println("*** "
-								+ qid
-								+ " is not in a known class of integer numbers. Skipping.");
+				System.out.println("*** "
+						+ qid
+						+ " is not in a known class of integer numbers. Skipping.");
 				return;
 			}
 
@@ -268,12 +245,12 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 							currentItemDocument.getRevisionId());
 			ArrayList<String> languages = new ArrayList<>(
 					arabicNumeralLanguages.length);
-			for (int i = 0; i < arabicNumeralLanguages.length; i++) {
+			for (String arabicNumeralLanguage : arabicNumeralLanguages) {
 				if (!currentItemDocument.getLabels().containsKey(
-						arabicNumeralLanguages[i])) {
+						arabicNumeralLanguage)) {
 					itemDocumentBuilder.withLabel(numberString,
-							arabicNumeralLanguages[i]);
-					languages.add(arabicNumeralLanguages[i]);
+							arabicNumeralLanguage);
+					languages.add(arabicNumeralLanguage);
 				}
 			}
 
@@ -286,23 +263,22 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 					numberString, languages);
 
 			dataEditor.editItemDocument(itemDocumentBuilder.build(), false,
-					"Set labels to numeric value (Task MB1)");
+					"Set labels to numeric value (Task MB1)", Collections.emptyList());
 		} catch (MediaWikiApiErrorException | IOException e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
 	/**
 	 * Returns true if the given item document lacks a label for at least one of
 	 * the languages covered.
 	 *
-	 * @param itemDocument
 	 * @return true if some label is missing
 	 */
 	protected boolean lacksSomeLanguage(ItemDocument itemDocument) {
-		for (int i = 0; i < arabicNumeralLanguages.length; i++) {
+		for (String arabicNumeralLanguage : arabicNumeralLanguages) {
 			if (!itemDocument.getLabels()
-					.containsKey(arabicNumeralLanguages[i])) {
+					.containsKey(arabicNumeralLanguage)) {
 				return true;
 			}
 		}
@@ -312,15 +288,12 @@ public class SetLabelsForNumbersBot implements EntityDocumentProcessor {
 	/**
 	 * Logs information about entities changed so far.
 	 *
-	 * @param entityId
-	 *            the id of the modified item
-	 * @param numberLabel
-	 *            the label written
-	 * @param languages
-	 *            the list of languages for which the label was set
+	 * @param entityId    the id of the modified item
+	 * @param numberLabel the label written
+	 * @param languages   the list of languages for which the label was set
 	 */
 	protected void logEntityModification(EntityIdValue entityId,
-			String numberLabel, ArrayList<String> languages) {
+										 String numberLabel, ArrayList<String> languages) {
 		modifiedEntities++;
 
 		System.out.println(entityId.getId() + ": adding label " + numberLabel

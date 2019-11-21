@@ -20,14 +20,10 @@ package examples;
  * #L%
  */
 
+import org.wikidata.wdtk.datamodel.interfaces.*;
+
 import java.io.IOException;
 import java.io.PrintStream;
-
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.StatementDocument;
-import org.wikidata.wdtk.datamodel.interfaces.TimeValue;
 
 /**
  * This document processor calculates the average life expectancy of people,
@@ -39,7 +35,6 @@ import org.wikidata.wdtk.datamodel.interfaces.TimeValue;
  * sampled person is expected to die in the future.
  *
  * @author Markus Kroetzsch
- *
  */
 public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	long totalPeopleCount = 0;
@@ -54,8 +49,6 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * Main method. Processes the whole dump using this processor and writes the
 	 * results to a file. To change which dump file to use and whether to run in
 	 * offline mode, modify the settings in {@link ExampleHelpers}.
-	 *
-	 * @param args
 	 */
 	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
@@ -71,8 +64,7 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 		int birthYear = getYearIfAny(itemDocument, "P569");
 		int deathYear = getYearIfAny(itemDocument, "P570");
 
-		if (birthYear != Integer.MIN_VALUE && deathYear != Integer.MIN_VALUE
-				&& birthYear >= 1200) {
+		if (deathYear != Integer.MIN_VALUE && birthYear >= 1200) {
 			// Do some more sanity checks to filter strange values:
 			if (deathYear > birthYear && deathYear - birthYear < 130) {
 				lifeSpans[birthYear] += (deathYear - birthYear);
@@ -120,19 +112,14 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: LifeExpectancyProcessor");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program will download and process dumps from Wikidata.");
-		System.out
-				.println("*** It will compute the average life expectancy of persons found");
-		System.out
-				.println("*** In the data. Results will be stored in a CSV file.");
+		System.out.println("*** This program will download and process dumps from Wikidata.");
+		System.out.println("*** It will compute the average life expectancy of persons found");
+		System.out.println("*** In the data. Results will be stored in a CSV file.");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 
 	/**
@@ -153,10 +140,8 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * any), and extracts an integer year. It checks if the value has sufficient
 	 * precision to extract an exact year.
 	 *
-	 * @param document
-	 *            the document to extract the data from
-	 * @param propertyId
-	 *            string id of the property to look for
+	 * @param document   the document to extract the data from
+	 * @param propertyId string id of the property to look for
 	 * @return the year, or Interger.MIN_VALUE if none was found
 	 */
 	private int getYearIfAny(StatementDocument document, String propertyId) {

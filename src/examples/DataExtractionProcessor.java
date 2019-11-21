@@ -20,16 +20,11 @@ package examples;
  * #L%
  */
 
+import org.wikidata.wdtk.datamodel.helpers.Datamodel;
+import org.wikidata.wdtk.datamodel.interfaces.*;
+
 import java.io.IOException;
 import java.io.PrintStream;
-
-import org.wikidata.wdtk.datamodel.helpers.Datamodel;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
-import org.wikidata.wdtk.datamodel.interfaces.StringValue;
-import org.wikidata.wdtk.datamodel.interfaces.Value;
 
 /**
  * This simple {@link EntityDocumentProcessor} finds all items with a GND
@@ -42,25 +37,21 @@ import org.wikidata.wdtk.datamodel.interfaces.Value;
  * condition (P31::Q5) can also be changed in the code.
  *
  * @author Markus Kroetzsch
- *
  */
 public class DataExtractionProcessor implements EntityDocumentProcessor {
 
-	static final String extractPropertyId = "P227"; // "GND identifier"
-	static final String filterPropertyId = "P31"; // "instance of"
-	static final Value filterValue = Datamodel.makeWikidataItemIdValue("Q5"); // "human"
+	private static final String extractPropertyId = "P227"; // "GND identifier"
+	private static final String filterPropertyId = "P31"; // "instance of"
+	private static final Value filterValue = Datamodel.makeWikidataItemIdValue("Q5"); // "human"
 
-	int itemsWithPropertyCount = 0;
-	int itemCount = 0;
-	PrintStream out;
+	private int itemsWithPropertyCount = 0;
+	private int itemCount = 0;
+	private PrintStream out;
 
 	/**
 	 * Main method. Processes the whole dump using this processor. To change
 	 * which dump file to use and whether to run in offline mode, modify the
 	 * settings in {@link ExampleHelpers}.
-	 *
-	 * @param args
-	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
@@ -134,8 +125,7 @@ public class DataExtractionProcessor implements EntityDocumentProcessor {
 	 * Escapes a string for use in CSV. In particular, the string is quoted and
 	 * quotation marks are escaped.
 	 *
-	 * @param string
-	 *            the string to escape
+	 * @param string the string to escape
 	 * @return the escaped string
 	 */
 	private String csvEscape(String string) {
@@ -159,19 +149,15 @@ public class DataExtractionProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: DataExtractionProcessor");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program will download and process dumps from Wikidata.");
-		System.out
-				.println("*** It will scan the dump to find items with values for property");
+		System.out.println("*** This program will download and process dumps from Wikidata.");
+		System.out.println("*** It will scan the dump to find items with values for property");
 		System.out.println("*** " + extractPropertyId
 				+ " and print some data for these items to a CSV file. ");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 
 	public void close() {

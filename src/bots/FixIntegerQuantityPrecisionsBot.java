@@ -20,33 +20,21 @@ package bots;
  * #L%
  */
 
+import examples.ExampleHelpers;
+import org.wikidata.wdtk.datamodel.helpers.Datamodel;
+import org.wikidata.wdtk.datamodel.helpers.StatementBuilder;
+import org.wikidata.wdtk.datamodel.interfaces.*;
+import org.wikidata.wdtk.wikibaseapi.ApiConnection;
+import org.wikidata.wdtk.wikibaseapi.BasicApiConnection;
+import org.wikidata.wdtk.wikibaseapi.WikibaseDataEditor;
+import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
+import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.wikidata.wdtk.datamodel.helpers.Datamodel;
-import org.wikidata.wdtk.datamodel.helpers.StatementBuilder;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
-import org.wikidata.wdtk.datamodel.interfaces.Statement;
-import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
-import org.wikidata.wdtk.util.WebResourceFetcherImpl;
-import org.wikidata.wdtk.wikibaseapi.*;
-import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
-
-import examples.ExampleHelpers;
+import java.util.*;
 
 /**
  * This bot adds changes quantity values of properties that are required to use
@@ -79,14 +67,13 @@ import examples.ExampleHelpers;
  * href="https://www.wikidata.org/wiki/User:Makrobot">User:Makrobot</a>).
  *
  * @author Markus Kroetzsch
- *
  */
 public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor {
 
 	/**
 	 * List of all integer properties considered by this bot.
 	 */
-	final static String[] integerProperties = { "P1082", // population
+	private final static String[] integerProperties = {"P1082", // population
 			"P1083", // capacity (seats etc.)
 			"P1092", // total produced (product)
 			"P1098", // number of speakers
@@ -147,38 +134,31 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 			"P2196", // students count
 	};
 
-	final ApiConnection connection;
-	final WikibaseDataEditor dataEditor;
-	final WikibaseDataFetcher dataFetcher;
+	private final WikibaseDataEditor dataEditor;
+	private final WikibaseDataFetcher dataFetcher;
 
 	/**
 	 * Number of entities modified so far.
 	 */
-	int modifiedEntities = 0;
+	private int modifiedEntities = 0;
 	/**
 	 * Number of statements modified so far.
 	 */
-	int modifiedStatements = 0;
+	private int modifiedStatements = 0;
 	/**
 	 * Number of statements modified so far, per property.
 	 */
-	Map<String, Integer> modifiedStatementsByProperty = new HashMap<>();
+	private final Map<String, Integer> modifiedStatementsByProperty = new HashMap<>();
 
 	/**
 	 * The place to write logging information to.
 	 */
-	final PrintStream logfile;
+	private final PrintStream logfile;
 
 	/**
 	 * Main method to run the bot.
-	 *
-	 * @param args
-	 * @throws LoginFailedException
-	 * @throws IOException
-	 * @throws MediaWikiApiErrorException
 	 */
-	public static void main(String[] args) throws LoginFailedException,
-			IOException, MediaWikiApiErrorException {
+	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
 		printDocumentation();
 
@@ -193,37 +173,18 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: FixIntegerQuantitiesBot");
 		System.out.println("*** ");
-		System.out
-				.println("*** This bot downloads recent Wikidata dumps to locate items about");
-		System.out
-				.println("*** that use quantity values for integer-valued properties, such as");
-		System.out
-				.println("*** popluation, and checks if they have a precision of +/-1. In this");
-		System.out
-				.println("*** case, it fixes their precision to be exact (+/-0).");
-		System.out
-				.println("********************************************************************");
+		System.out.println("*** This bot downloads recent Wikidata dumps to locate items about");
+		System.out.println("*** that use quantity values for integer-valued properties, such as");
+		System.out.println("*** popluation, and checks if they have a precision of +/-1. In this");
+		System.out.println("*** case, it fixes their precision to be exact (+/-0).");
+		System.out.println("********************************************************************");
 	}
 
-	/**
-	 * Constructor.
-	 *
-	 * @throws LoginFailedException
-	 * @throws IOException
-	 */
-	public FixIntegerQuantityPrecisionsBot() throws LoginFailedException,
-			IOException {
-		WebResourceFetcherImpl
-				.setUserAgent("makrobot 0.4.0; Wikidata Toolkit; Java");
-
-		connection = BasicApiConnection.getWikidataApiConnection();
-		if (BotSettings.USERNAME != null) {
-			connection.login(BotSettings.USERNAME, BotSettings.PASSWORD);
-		}
+	public FixIntegerQuantityPrecisionsBot() throws IOException {
+		ApiConnection connection = BasicApiConnection.getWikidataApiConnection();
 		dataEditor = new WikibaseDataEditor(connection, Datamodel.SITE_WIKIDATA);
 		dataEditor.setEditAsBot(BotSettings.EDIT_AS_BOT);
 		dataEditor.disableEditing(); // do no actual edits
@@ -250,11 +211,10 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 	@Override
 	public void processItemDocument(ItemDocument itemDocument) {
 		for (String propertyId : integerProperties) {
-			if (hasPlusMinusOneValues(itemDocument
-					.findStatementGroup(propertyId))) {
+			if (hasPlusMinusOneValues(itemDocument.findStatementGroup(propertyId))) {
 				fixIntegerPrecisions(itemDocument.getEntityId(), propertyId);
 			} // else: ignore items that have no value or only correct values
-				// for the property we consider
+			// for the property we consider
 		}
 	}
 
@@ -277,13 +237,11 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 	 * Fetches the current online data for the given item, and fixes the
 	 * precision of integer quantities if necessary.
 	 *
-	 * @param itemIdValue
-	 *            the id of the document to inspect
-	 * @param propertyId
-	 *            id of the property to consider
+	 * @param itemIdValue the id of the document to inspect
+	 * @param propertyId  id of the property to consider
 	 */
 	protected void fixIntegerPrecisions(ItemIdValue itemIdValue,
-			String propertyId) {
+										String propertyId) {
 
 		String qid = itemIdValue.getId();
 
@@ -293,8 +251,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 			ItemDocument currentItemDocument = (ItemDocument) dataFetcher
 					.getEntityDocument(qid);
 			if (currentItemDocument == null) {
-				System.out.println("*** " + qid
-						+ " could not be fetched. Maybe it has been deleted.");
+				System.out.println("*** " + qid + " could not be fetched. Maybe it has been deleted.");
 				return;
 			}
 
@@ -302,8 +259,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 			StatementGroup editPropertyStatements = currentItemDocument
 					.findStatementGroup(propertyId);
 			if (editPropertyStatements == null) {
-				System.out.println("*** " + qid
-						+ " no longer has any statements for " + propertyId);
+				System.out.println("*** " + qid + " no longer has any statements for " + propertyId);
 				return;
 			}
 
@@ -336,9 +292,9 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 					updateStatements, propertyId);
 
 			dataEditor.updateStatements(currentItemDocument, updateStatements,
-					Collections.<Statement> emptyList(),
+					Collections.emptyList(),
 					"Set exact values for [[Property:" + propertyId + "|"
-							+ propertyId + "]] integer quantities (Task MB2)");
+							+ propertyId + "]] integer quantities (Task MB2)", Collections.emptyList());
 
 		} catch (MediaWikiApiErrorException | IOException e) {
 			e.printStackTrace();
@@ -348,13 +304,10 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 	/**
 	 * Logs information about entities changed so far.
 	 *
-	 * @param entityId
-	 *            the id of the modified item
-	 * @param updateStatements
-	 * @param propertyId
+	 * @param entityId the id of the modified item
 	 */
 	protected void logEntityModification(EntityIdValue entityId,
-			List<Statement> updateStatements, String propertyId) {
+										 List<Statement> updateStatements, String propertyId) {
 		modifiedEntities++;
 		modifiedStatements += updateStatements.size();
 		modifiedStatementsByProperty.put(
@@ -379,9 +332,6 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 
 	/**
 	 * Checks if the given value is a number with precision +/-1.
-	 *
-	 * @param quantityValue
-	 * @return
 	 */
 	protected boolean isPlusMinusOneValue(QuantityValue quantityValue) {
 		BigDecimal valueSucc = quantityValue.getNumericValue().add(
@@ -390,15 +340,12 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 				BigDecimal.ONE);
 		return (quantityValue.getLowerBound().equals(valuePrec)
 				&& quantityValue.getUpperBound().equals(valueSucc) && ""
-					.equals(quantityValue.getUnit()));
+				.equals(quantityValue.getUnit()));
 	}
 
 	/**
 	 * Checks if the given statement group contains at least one value of
 	 * precision +/-1.
-	 *
-	 * @param statementGroup
-	 * @return
 	 */
 	protected boolean hasPlusMinusOneValues(StatementGroup statementGroup) {
 		if (statementGroup == null) {

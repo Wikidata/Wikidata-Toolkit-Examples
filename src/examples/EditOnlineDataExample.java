@@ -20,34 +20,25 @@ package examples;
  * #L%
  */
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.helpers.ItemDocumentBuilder;
 import org.wikidata.wdtk.datamodel.helpers.ReferenceBuilder;
 import org.wikidata.wdtk.datamodel.helpers.StatementBuilder;
-import org.wikidata.wdtk.datamodel.interfaces.DatatypeIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.Reference;
-import org.wikidata.wdtk.datamodel.interfaces.Statement;
-import org.wikidata.wdtk.datamodel.interfaces.StatementDocument;
-import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
+import org.wikidata.wdtk.datamodel.interfaces.*;
 import org.wikidata.wdtk.util.WebResourceFetcherImpl;
 import org.wikidata.wdtk.wikibaseapi.ApiConnection;
-import org.wikidata.wdtk.wikibaseapi.LoginFailedException;
+import org.wikidata.wdtk.wikibaseapi.BasicApiConnection;
 import org.wikidata.wdtk.wikibaseapi.WikibaseDataEditor;
 import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
 import org.wikidata.wdtk.wikibaseapi.apierrors.EditConflictErrorException;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 import org.wikidata.wdtk.wikibaseapi.apierrors.NoSuchEntityErrorException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * This example shows how to create and modify data through the web API of a
@@ -70,7 +61,6 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.NoSuchEntityErrorException;
  * tried to modify an entity that meanwhile was deleted).
  *
  * @author Markus Kroetzsch
- *
  */
 public class EditOnlineDataExample {
 
@@ -80,16 +70,15 @@ public class EditOnlineDataExample {
 	 * use local ids only), but it is important to use a fixed IRI in your code
 	 * for each site and not to mix IRIs.
 	 */
-	final static String siteIri = "http://www.test.wikidata.org/entity/";
+	private final static String siteIri = "http://www.test.wikidata.org/entity/";
 
-	static PropertyIdValue stringProperty1;
-	static PropertyIdValue stringProperty2;
-	static PropertyIdValue stringProperty3;
-	static PropertyIdValue stringProperty4;
-	static PropertyIdValue stringProperty5;
+	private static PropertyIdValue stringProperty1;
+	private static PropertyIdValue stringProperty2;
+	private static PropertyIdValue stringProperty3;
+	private static PropertyIdValue stringProperty4;
+	private static PropertyIdValue stringProperty5;
 
-	public static void main(String[] args) throws LoginFailedException,
-			IOException, MediaWikiApiErrorException {
+	public static void main(String[] args) throws IOException, MediaWikiApiErrorException {
 		ExampleHelpers.configureLogging();
 		printDocumentation();
 
@@ -97,7 +86,7 @@ public class EditOnlineDataExample {
 		WebResourceFetcherImpl
 				.setUserAgent("Wikidata Toolkit EditOnlineDataExample");
 
-		ApiConnection connection = ApiConnection.getTestWikidataApiConnection();
+		ApiConnection connection = BasicApiConnection.getTestWikidataApiConnection();
 		// Optional login -- required for operations on real wikis:
 		// connection.login("my username", "my password");
 		WikibaseDataEditor wbde = new WikibaseDataEditor(connection, siteIri);
@@ -129,7 +118,7 @@ public class EditOnlineDataExample {
 		// unique, which would cause problems if this example is run many times.
 
 		ItemDocument newItemDocument = wbde.createItemDocument(itemDocument,
-				"Wikidata Toolkit example test item creation");
+				"Wikidata Toolkit example test item creation", Collections.emptyList());
 
 		ItemIdValue newItemId = newItemDocument.getEntityId();
 		System.out.println("*** Successfully created a new item "
@@ -173,8 +162,8 @@ public class EditOnlineDataExample {
 		// * statement2: already present, will not be added again
 		newItemDocument = wbde.updateStatements(newItemId,
 				Arrays.asList(statement4, statement1WithRef, statement2),
-				Collections.<Statement> emptyList(),
-				"Wikidata Toolkit example test statement addition");
+				Collections.emptyList(),
+				"Wikidata Toolkit example test statement addition", Collections.emptyList());
 
 		System.out.println("*** Successfully added statements to "
 				+ newItemId.getId()
@@ -182,8 +171,7 @@ public class EditOnlineDataExample {
 				+ newItemId.getId() + "&oldid="
 				+ newItemDocument.getRevisionId() + " for this version)");
 
-		System.out
-				.println("*** Deleting and modifying existing statements ...");
+		System.out.println("*** Deleting and modifying existing statements ...");
 		// We first need to find existing statements with their statement id.
 		// For this we look at the item Document that we have last retrieved.
 		Statement statementToModify = findStatementGroup(stringProperty1,
@@ -202,18 +190,17 @@ public class EditOnlineDataExample {
 				newItemDocument).getStatements().get(0);
 
 		newItemDocument = wbde.updateStatements(newItemDocument,
-                Collections.singletonList(newStatement1), Collections.singletonList(statementToDelete),
-				"Wikidata Toolkit example test statement modification");
+				Collections.singletonList(newStatement1), Collections.singletonList(statementToDelete),
+				"Wikidata Toolkit example test statement modification", Collections.emptyList());
 
 		System.out.println("*** Successfully updated statements of "
 				+ newItemId.getId()
 				+ " (see https://test.wikidata.org/w/index.php?title="
 				+ newItemId.getId() + "&oldid="
 				+ newItemDocument.getRevisionId() + " for this version)");
-		System.out
-				.println("*** The complete history of our edits can be seen at: "
-						+ "https://test.wikidata.org/w/index.php?title="
-						+ newItemId.getId() + "&action=history");
+		System.out.println("*** The complete history of our edits can be seen at: "
+				+ "https://test.wikidata.org/w/index.php?title="
+				+ newItemId.getId() + "&action=history");
 		System.out.println("*** Done.");
 	}
 
@@ -223,20 +210,16 @@ public class EditOnlineDataExample {
 	 * Instead, we just look through all properties starting from P1 to find the
 	 * first few properties of type string that have an English label. These
 	 * properties are used for testing in this code.
-	 *
-	 * @param connection
-	 * @throws MediaWikiApiErrorException
 	 */
 	public static void findSomeStringProperties(ApiConnection connection)
-			throws MediaWikiApiErrorException {
+			throws MediaWikiApiErrorException, IOException {
 		WikibaseDataFetcher wbdf = new WikibaseDataFetcher(connection, siteIri);
 		wbdf.getFilter().excludeAllProperties();
 		wbdf.getFilter().setLanguageFilter(Collections.singleton("en"));
 
 		ArrayList<PropertyIdValue> stringProperties = new ArrayList<>();
 
-		System.out
-				.println("*** Trying to find string properties for the example ... ");
+		System.out.println("*** Trying to find string properties for the example ... ");
 		int propertyNumber = 1;
 		while (stringProperties.size() < 5) {
 			ArrayList<String> fetchProperties = new ArrayList<>();
@@ -271,30 +254,24 @@ public class EditOnlineDataExample {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: EditOnlineDataExample");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program creates and modifies online data at test.wikidata.org.");
-		System.out
-				.println("*** It does not download any dump files. See source code for details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("*** This program creates and modifies online data at test.wikidata.org.");
+		System.out.println("*** It does not download any dump files. See source code for details.");
+		System.out.println("********************************************************************");
 	}
 
 	/**
 	 * Finds the {@link StatementGroup} for the given property in a document.
 	 *
-	 * @param pid
-	 *            the property to look for
-	 * @param document
-	 *            the document to search
+	 * @param pid      the property to look for
+	 * @param document the document to search
 	 * @return the {@link StatementGroup} with this property, or null if there
-	 *         is none
+	 * is none
 	 */
 	protected static StatementGroup findStatementGroup(PropertyIdValue pid,
-			StatementDocument document) {
+													   StatementDocument document) {
 		for (StatementGroup sg : document.getStatementGroups()) {
 			if (pid.equals(sg.getProperty())) {
 				return sg;

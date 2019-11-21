@@ -20,8 +20,6 @@ package examples;
  * #L%
  */
 
-import java.io.IOException;
-
 import org.wikidata.wdtk.dumpfiles.DumpContentType;
 import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
 import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
@@ -32,7 +30,6 @@ import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
  * {@link EntityTimerProcessor} to process a dump.
  *
  * @author Markus Damm
- *
  */
 public class LocalDumpFileExample {
 
@@ -56,17 +53,14 @@ public class LocalDumpFileExample {
 
 		// Select local file (meta-data will be guessed):
 		System.out.println();
-		System.out
-				.println("Processing a local dump file giving only its location");
-		System.out
-				.println("(meta-data like the date is guessed from the file name):");
+		System.out.println("Processing a local dump file giving only its location");
+		System.out.println("(meta-data like the date is guessed from the file name):");
 		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE);
 		dumpProcessingController.processDump(mwDumpFile);
 
 		// Select local file and set meta-data:
 		System.out.println();
-		System.out
-				.println("Processing a local dump file with all meta-data set:");
+		System.out.println("Processing a local dump file with all meta-data set:");
 		mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON,
 				"20150815", "wikidatawiki");
 		dumpProcessingController.processDump(mwDumpFile);
@@ -78,18 +72,14 @@ public class LocalDumpFileExample {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: LocalDumpFileExample");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program illustrates how to process local dumps.");
-		System.out
-				.println("*** It uses an EntityTimerProcesses which counts processed items");
+		System.out.println("*** This program illustrates how to process local dumps.");
+		System.out.println("*** It uses an EntityTimerProcesses which counts processed items");
 		System.out.println("*** and elapsed time.");
 		System.out.println("*** ");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 }

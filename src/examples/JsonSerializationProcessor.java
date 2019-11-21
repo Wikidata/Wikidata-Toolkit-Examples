@@ -20,13 +20,6 @@ package examples;
  * #L%
  */
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.helpers.DatamodelConverter;
@@ -34,6 +27,13 @@ import org.wikidata.wdtk.datamodel.helpers.DatamodelFilter;
 import org.wikidata.wdtk.datamodel.helpers.JsonSerializer;
 import org.wikidata.wdtk.datamodel.implementation.DataObjectFactoryImpl;
 import org.wikidata.wdtk.datamodel.interfaces.*;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This example illustrates how to create a JSON serialization of some of the
@@ -45,7 +45,6 @@ import org.wikidata.wdtk.datamodel.interfaces.*;
  * {@link #includeDocument(ItemDocument)}.
  *
  * @author Markus Kroetzsch
- *
  */
 public class JsonSerializationProcessor implements EntityDocumentProcessor {
 
@@ -58,9 +57,7 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	/**
 	 * Runs the example program.
 	 *
-	 * @param args
-	 * @throws IOException
-	 *             if there was a problem in writing the output file
+	 * @throws IOException if there was a problem in writing the output file
 	 */
 	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
@@ -76,8 +73,7 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	 * Constructor. Initializes various helper objects we use for the JSON
 	 * serialization, and opens the file that we want to write to.
 	 *
-	 * @throws IOException
-	 *             if there is a problem opening the output file
+	 * @throws IOException if there is a problem opening the output file
 	 */
 	public JsonSerializationProcessor() throws IOException {
 		// The filter is used to copy selected parts of the data. We use this
@@ -93,7 +89,7 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 		propertyFilter.add(Datamodel.makeWikidataPropertyIdValue("P569")); // birthdate
 		filter.setPropertyFilter(propertyFilter);
 		// Do not copy any sitelinks:
-		filter.setSiteLinkFilter(Collections.<String>emptySet());
+		filter.setSiteLinkFilter(Collections.emptySet());
 
 		this.datamodelFilter = new DatamodelFilter(new DataObjectFactoryImpl(), new DocumentDataFilter());
 
@@ -123,23 +119,18 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: JsonSerializationProcessor");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program will download and process dumps from Wikidata.");
-		System.out
-				.println("*** It will filter the data and store the results in a new JSON file.");
+		System.out.println("*** This program will download and process dumps from Wikidata.");
+		System.out.println("*** It will filter the data and store the results in a new JSON file.");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 
 	/**
 	 * Closes the output. Should be called after the JSON serialization was
 	 * finished.
-	 *
 	 */
 	public void close() {
 		System.out.println("Serialized "
@@ -152,8 +143,7 @@ public class JsonSerializationProcessor implements EntityDocumentProcessor {
 	 * Returns true if the given document should be included in the
 	 * serialization.
 	 *
-	 * @param itemDocument
-	 *            the document to check
+	 * @param itemDocument the document to check
 	 * @return true if the document should be serialized
 	 */
 	private boolean includeDocument(ItemDocument itemDocument) {

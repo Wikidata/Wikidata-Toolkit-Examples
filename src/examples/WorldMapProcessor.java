@@ -20,6 +20,9 @@ package examples;
  * #L%
  */
 
+import org.wikidata.wdtk.datamodel.interfaces.*;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,16 +33,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.imageio.ImageIO;
-
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.GlobeCoordinatesValue;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.Statement;
-import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
-import org.wikidata.wdtk.datamodel.interfaces.Value;
-
 /**
  * This example class processes EntityDocuments to create a map image that shows
  * the distribution of items with geographic coordinates on Earth. Several maps
@@ -49,63 +42,59 @@ import org.wikidata.wdtk.datamodel.interfaces.Value;
  * the maps can be modified in the main method.
  *
  * @author Markus Kroetzsch
- *
  */
 public class WorldMapProcessor implements EntityDocumentProcessor {
 
 	/**
 	 * The property id that encodes coordinates.
 	 */
-	static final String COORD_PROPERTY = "P625";
+	private static final String COORD_PROPERTY = "P625";
 
 	/**
 	 * Colors to use on the color scale, each specificed as {r,g,b}.
 	 */
-	static int[][] colors = { { 0, 0, 150 }, { 24, 99, 9 }, { 227, 70, 0 },
-			{ 255, 214, 30 }, { 255, 255, 255 } };
+	private final static int[][] colors = {{0, 0, 150}, {24, 99, 9}, {227, 70, 0},
+			{255, 214, 30}, {255, 255, 255}};
 
 	/**
 	 * The width in pixels of the map image that is created.
 	 */
-	final int width;
+	private final int width;
 	/**
 	 * The height in pixels of the map image that is created.
 	 */
-	final int height;
+	private final int height;
 	/**
 	 * The total number of coordinates encountered so far.
 	 */
-	int count = 0;
+	private int count = 0;
 
 	/**
 	 * Value at which the brightest color will be reached.
 	 */
-	final int topValue;
+	private final int topValue;
 
 	/**
 	 * All maps for which data is recorded.
 	 */
-	Set<ValueMap> valueMaps = new HashSet<>();
+	private final Set<ValueMap> valueMaps = new HashSet<>();
 
 	/**
 	 * Number of articles with coordinates per site.
 	 */
-	final Map<String, Integer> siteCounts = new HashMap<>();
+	private final Map<String, Integer> siteCounts = new HashMap<>();
 
 	/**
 	 * Identifier of the globe for which coordinates are gathered.
 	 */
-	String globe = GlobeCoordinatesValue.GLOBE_EARTH;
+	private String globe = GlobeCoordinatesValue.GLOBE_EARTH;
 
 	/**
 	 * Main method. Processes the whole dump using this processor and writes the
 	 * results to a file. To change which dump file to use and whether to run in
 	 * offline mode, modify the settings in {@link ExampleHelpers}.
-	 *
-	 * @param args
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
 		WorldMapProcessor.printDocumentation();
 
@@ -154,14 +143,12 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 	/**
 	 * Creates a new processor for building world maps.
 	 *
-	 * @param width
-	 *            horizontal size of the world map; the map's height is half of
-	 *            this (plus some pixels for printing the scale)
-	 * @param brightness
-	 *            parameter for scaling up the brightness of colors; the default
-	 *            is 1.0; higher values make smaller numbers appear more
-	 *            brightly; smaller numbers darken smaller numbers and thus help
-	 *            to highlight the biggest concentrations of items
+	 * @param width      horizontal size of the world map; the map's height is half of
+	 *                   this (plus some pixels for printing the scale)
+	 * @param brightness parameter for scaling up the brightness of colors; the default
+	 *                   is 1.0; higher values make smaller numbers appear more
+	 *                   brightly; smaller numbers darken smaller numbers and thus help
+	 *                   to highlight the biggest concentrations of items
 	 */
 	public WorldMapProcessor(int width, double brightness) {
 		this.width = width;
@@ -173,21 +160,16 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 	 * Registers a new site for specific data collection. If null is used as a
 	 * site key, then all data is collected.
 	 *
-	 * @param siteKey
-	 *            the site to collect geo data for
+	 * @param siteKey the site to collect geo data for
 	 */
 	public void addSite(String siteKey) {
 		ValueMap gv = new ValueMap(siteKey);
-		if (!this.valueMaps.contains(gv)) {
-			this.valueMaps.add(gv);
-		}
+		this.valueMaps.add(gv);
 	}
 
 	/**
 	 * Sets the globe on which coordinates should be gathered. This should be an
 	 * entity URI, e.g., {@link GlobeCoordinatesValue#GLOBE_EARTH}.
-	 *
-	 * @param globe
 	 */
 	public void setGlobe(String globe) {
 		this.globe = globe;
@@ -209,12 +191,9 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 	/**
 	 * Counts the coordinates stored in a single statement for the relevant
 	 * property, if they are actually given and valid.
-	 *
-	 * @param statement
-	 * @param itemDocument
 	 */
 	private void countCoordinateStatement(Statement statement,
-			ItemDocument itemDocument) {
+										  ItemDocument itemDocument) {
 		Value value = statement.getValue();
 		if (!(value instanceof GlobeCoordinatesValue)) {
 			return;
@@ -248,13 +227,9 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 
 	/**
 	 * Counts a single pair of coordinates in all datasets.
-	 *
-	 * @param xCoord
-	 * @param yCoord
-	 * @param itemDocument
 	 */
 	private void countCoordinates(int xCoord, int yCoord,
-			ItemDocument itemDocument) {
+								  ItemDocument itemDocument) {
 
 		for (String siteKey : itemDocument.getSiteLinks().keySet()) {
 			Integer count = this.siteCounts.get(siteKey);
@@ -308,18 +283,14 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: WorldMapProcessor");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program will download and process dumps from Wikidata.");
-		System.out
-				.println("*** It will collect geographic coordinates from the data to ");
+		System.out.println("*** This program will download and process dumps from Wikidata.");
+		System.out.println("*** It will collect geographic coordinates from the data to ");
 		System.out.println("***create a map that is stored in an image file.");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 
 	/**
@@ -334,9 +305,6 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 	/**
 	 * Returns a color for a given absolute number that is to be shown on the
 	 * map.
-	 *
-	 * @param value
-	 * @return
 	 */
 	private int getColor(int value) {
 		if (value == 0) {
@@ -371,7 +339,6 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 	 * settings.
 	 *
 	 * @author Markus Kroetzsch
-	 *
 	 */
 	class ValueMap {
 
@@ -382,8 +349,6 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 
 		/**
 		 * Constructor.
-		 *
-		 * @param siteFilter
 		 */
 		public ValueMap(String siteFilter) {
 			this.values = new int[WorldMapProcessor.this.width][WorldMapProcessor.this.height];
@@ -393,14 +358,9 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 		/**
 		 * Counts the given coordinates, unless the item document is filtered.
 		 * It is assumed that the coordinates are in the admissible range.
-		 *
-		 * @param xCoord
-		 * @param yCoord
-		 * @param itemDocument
-		 * @return
 		 */
 		public void countCoordinates(int xCoord, int yCoord,
-				ItemDocument itemDocument) {
+									 ItemDocument itemDocument) {
 			if (this.siteFilter != null) {
 				if (!itemDocument.getSiteLinks().containsKey(this.siteFilter)) {
 					return;
@@ -461,8 +421,8 @@ public class WorldMapProcessor implements EntityDocumentProcessor {
 					.equals(WorldMapProcessor.this.globe)) {
 				fileName += "-"
 						+ WorldMapProcessor.this.globe
-								.substring(WorldMapProcessor.this.globe
-										.lastIndexOf('Q'));
+						.substring(WorldMapProcessor.this.globe
+								.lastIndexOf('Q'));
 			}
 			fileName += "-" + width + "x" + height + ".png";
 

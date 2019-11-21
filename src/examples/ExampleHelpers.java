@@ -20,13 +20,6 @@ package examples;
  * #L%
  */
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -38,13 +31,19 @@ import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
 import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor.TimeoutException;
 import org.wikidata.wdtk.dumpfiles.MwDumpFile;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Class for sharing code that is used in many examples. It contains several
  * static final members that can be modified to change the behaviour of example
  * programs, such as whether to use {@link ExampleHelpers#OFFLINE_MODE} or not.
  *
  * @author Markus Kroetzsch
- *
  */
 public class ExampleHelpers {
 
@@ -113,8 +112,7 @@ public class ExampleHelpers {
 	 * processor. By default, the most recent JSON dump will be used. In offline
 	 * mode, only the most recent previously downloaded file is considered.
 	 *
-	 * @param entityDocumentProcessor
-	 *            the object to use for processing entities in this dump
+	 * @param entityDocumentProcessor the object to use for processing entities in this dump
 	 */
 	public static void processEntitiesFromWikidataDump(
 			EntityDocumentProcessor entityDocumentProcessor) {
@@ -130,16 +128,16 @@ public class ExampleHelpers {
 		// Should we process historic revisions or only current ones?
 		boolean onlyCurrentRevisions;
 		switch (DUMP_FILE_MODE) {
-		case ALL_REVS:
-		case ALL_REVS_WITH_DAILIES:
-			onlyCurrentRevisions = false;
-			break;
-		case CURRENT_REVS:
-		case CURRENT_REVS_WITH_DAILIES:
-		case JSON:
-		case JUST_ONE_DAILY_FOR_TEST:
-		default:
-			onlyCurrentRevisions = true;
+			case ALL_REVS:
+			case ALL_REVS_WITH_DAILIES:
+				onlyCurrentRevisions = false;
+				break;
+			case CURRENT_REVS:
+			case CURRENT_REVS_WITH_DAILIES:
+			case JSON:
+			case JUST_ONE_DAILY_FOR_TEST:
+			default:
+				onlyCurrentRevisions = true;
 		}
 
 		// Subscribe to the most recent entity documents of type wikibase item:
@@ -156,33 +154,33 @@ public class ExampleHelpers {
 		try {
 			// Start processing (may trigger downloads where needed):
 			switch (DUMP_FILE_MODE) {
-			case ALL_REVS:
-			case CURRENT_REVS:
-				dumpFile = dumpProcessingController
-						.getMostRecentDump(DumpContentType.FULL);
-				break;
-			case ALL_REVS_WITH_DAILIES:
-			case CURRENT_REVS_WITH_DAILIES:
-				MwDumpFile fullDumpFile = dumpProcessingController
-						.getMostRecentDump(DumpContentType.FULL);
-				MwDumpFile incrDumpFile = dumpProcessingController
-						.getMostRecentDump(DumpContentType.DAILY);
-				lastDumpFileName = fullDumpFile.getProjectName() + "-"
-						+ incrDumpFile.getDateStamp() + "."
-						+ fullDumpFile.getDateStamp();
-				dumpProcessingController.processAllRecentRevisionDumps();
-				break;
-			case JSON:
-				dumpFile = dumpProcessingController
-						.getMostRecentDump(DumpContentType.JSON);
-				break;
-			case JUST_ONE_DAILY_FOR_TEST:
-				dumpFile = dumpProcessingController
-						.getMostRecentDump(DumpContentType.DAILY);
-				break;
-			default:
-				throw new RuntimeException("Unsupported dump processing type "
-						+ DUMP_FILE_MODE);
+				case ALL_REVS:
+				case CURRENT_REVS:
+					dumpFile = dumpProcessingController
+							.getMostRecentDump(DumpContentType.FULL);
+					break;
+				case ALL_REVS_WITH_DAILIES:
+				case CURRENT_REVS_WITH_DAILIES:
+					MwDumpFile fullDumpFile = dumpProcessingController
+							.getMostRecentDump(DumpContentType.FULL);
+					MwDumpFile incrDumpFile = dumpProcessingController
+							.getMostRecentDump(DumpContentType.DAILY);
+					lastDumpFileName = fullDumpFile.getProjectName() + "-"
+							+ incrDumpFile.getDateStamp() + "."
+							+ fullDumpFile.getDateStamp();
+					dumpProcessingController.processAllRecentRevisionDumps();
+					break;
+				case JSON:
+					dumpFile = dumpProcessingController
+							.getMostRecentDump(DumpContentType.JSON);
+					break;
+				case JUST_ONE_DAILY_FOR_TEST:
+					dumpFile = dumpProcessingController
+							.getMostRecentDump(DumpContentType.DAILY);
+					break;
+				default:
+					throw new RuntimeException("Unsupported dump processing type "
+							+ DUMP_FILE_MODE);
 			}
 
 			if (dumpFile != null) {
@@ -204,11 +202,9 @@ public class ExampleHelpers {
 	 * file of this name that exists already will be replaced. The caller is
 	 * responsible for eventually closing the stream.
 	 *
-	 * @param filename
-	 *            the name of the file to write to
+	 * @param filename the name of the file to write to
 	 * @return FileOutputStream for the file
-	 * @throws IOException
-	 *             if the file or example output directory could not be created
+	 * @throws IOException if the file or example output directory could not be created
 	 */
 	public static FileOutputStream openExampleFileOuputStream(String filename)
 			throws IOException {
@@ -238,11 +234,9 @@ public class ExampleHelpers {
 	/**
 	 * Create a directory at the given path if it does not exist yet.
 	 *
-	 * @param path
-	 *            the path to the directory
-	 * @throws IOException
-	 *             if it was not possible to create a directory at the given
-	 *             path
+	 * @param path the path to the directory
+	 * @throws IOException if it was not possible to create a directory at the given
+	 *                     path
 	 */
 	private static void createDirectory(Path path) throws IOException {
 		try {

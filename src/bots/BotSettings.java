@@ -26,7 +26,6 @@ package bots;
  * NEVER COMMIT YOUR PERSONAL CREDENTIALS TO GIT.
  *
  * @author Markus Kroetzsch
- *
  */
 public class BotSettings {
 

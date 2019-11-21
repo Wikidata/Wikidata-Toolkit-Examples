@@ -20,15 +20,9 @@ package examples;
  * #L%
  */
 
-import java.io.IOException;
-import java.math.BigDecimal;
+import org.wikidata.wdtk.datamodel.interfaces.*;
 
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
+import java.math.BigDecimal;
 
 /**
  * This simple {@link EntityDocumentProcessor} finds the greatest number
@@ -36,7 +30,6 @@ import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
  * value for {@link GreatestNumberProcessor#numberPropertyId}.
  *
  * @author Markus Kroetzsch
- *
  */
 public class GreatestNumberProcessor implements EntityDocumentProcessor {
 
@@ -47,21 +40,18 @@ public class GreatestNumberProcessor implements EntityDocumentProcessor {
 	// P1128 is "employees", P1101 is "floors above ground"
 	// P1174 is "visitors per year", P1183 is "seat capacity"
 
-	ItemIdValue largestNumberItem;
-	String largestNumberItemLabel;
-	BigDecimal largestNumberValue;
-	int itemsWithPropertyCount = 0;
-	int itemCount = 0;
+	private ItemIdValue largestNumberItem;
+	private String largestNumberItemLabel;
+	private BigDecimal largestNumberValue;
+	private int itemsWithPropertyCount = 0;
+	private int itemCount = 0;
 
 	/**
 	 * Main method. Processes the whole dump using this processor. To change
 	 * which dump file to use and whether to run in offline mode, modify the
 	 * settings in {@link ExampleHelpers}.
-	 *
-	 * @param args
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
 		GreatestNumberProcessor.printDocumentation();
 
@@ -111,7 +101,7 @@ public class GreatestNumberProcessor implements EntityDocumentProcessor {
 	/**
 	 * Prints the current status, time and entity count.
 	 */
-	public void printStatus() {
+	private void printStatus() {
 		System.out.println("Found " + this.itemsWithPropertyCount
 				+ " matching items after scanning " + this.itemCount
 				+ " items.");
@@ -129,18 +119,14 @@ public class GreatestNumberProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: GreatestNumberProcessor");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program will download and process dumps from Wikidata.");
-		System.out
-				.println("*** It will scan the dump to find the item with the greatest value");
+		System.out.println("*** This program will download and process dumps from Wikidata.");
+		System.out.println("*** It will scan the dump to find the item with the greatest value");
 		System.out.println("*** for property " + numberPropertyId + ".");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 
 }

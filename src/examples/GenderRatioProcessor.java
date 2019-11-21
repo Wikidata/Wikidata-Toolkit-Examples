@@ -20,25 +20,12 @@ package examples;
  * #L%
  */
 
+import org.wikidata.wdtk.datamodel.helpers.Datamodel;
+import org.wikidata.wdtk.datamodel.interfaces.*;
+
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-
-import org.wikidata.wdtk.datamodel.helpers.Datamodel;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
-import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
-import org.wikidata.wdtk.datamodel.interfaces.Statement;
-import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
-import org.wikidata.wdtk.datamodel.interfaces.Value;
+import java.util.*;
 
 /**
  * This document processor calculates the gender ratios of people featured on
@@ -67,20 +54,18 @@ import org.wikidata.wdtk.datamodel.interfaces.Value;
  * be changed.
  *
  * @author Markus Kroetzsch
- *
  */
 public class GenderRatioProcessor implements EntityDocumentProcessor {
-	int itemCount = 0;
-	int genderItemCount = 0;
-	boolean printedStatus = true;
+	private int itemCount = 0;
+	private int genderItemCount = 0;
+	private boolean printedStatus = true;
 
 	/**
 	 * Class to store basic information for each site in a simple format.
 	 *
 	 * @author Markus Kroetzsch
-	 *
 	 */
-	public class SiteRecord {
+	public static class SiteRecord {
 		public int pageCount = 0;
 		public int humanGenderPageCount = 0;
 		public int humanPageCount = 0;
@@ -96,18 +81,17 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * Class to order site records human page count.
 	 *
 	 * @author Markus Kroetzsch
-	 *
 	 */
-	public class SiteRecordComparator implements Comparator<SiteRecord> {
+	public static class SiteRecordComparator implements Comparator<SiteRecord> {
 		@Override
 		public int compare(SiteRecord o1, SiteRecord o2) {
 			return o2.humanPageCount - o1.humanPageCount;
 		}
 	}
 
-	final HashMap<String, SiteRecord> siteRecords = new HashMap<>();
-	final HashMap<EntityIdValue, String> genderNames = new HashMap<>();
-	final List<EntityIdValue> genderNamesList = new ArrayList<>();
+	private final HashMap<String, SiteRecord> siteRecords = new HashMap<>();
+	private final HashMap<EntityIdValue, String> genderNames = new HashMap<>();
+	private final List<EntityIdValue> genderNamesList = new ArrayList<>();
 
 	/**
 	 * Class to use for filtering items. This can be changed to analyse a more
@@ -117,18 +101,14 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * (Q39715) by site; the gender counts would (hopefully) be zero in this
 	 * case.
 	 */
-	static final ItemIdValue filterClass = Datamodel
-			.makeWikidataItemIdValue("Q5");
+	private static final ItemIdValue filterClass = Datamodel.makeWikidataItemIdValue("Q5");
 
 	/**
 	 * Main method. Processes the whole dump using this processor and writes the
 	 * results to a file. To change which dump file to use and whether to run in
 	 * offline mode, modify the settings in {@link ExampleHelpers}.
-	 *
-	 * @param args
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
 		GenderRatioProcessor.printDocumentation();
 
@@ -188,12 +168,12 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 
 		for (StatementGroup statementGroup : itemDocument.getStatementGroups()) {
 			switch (statementGroup.getProperty().getId()) {
-			case "P21": // P21 is "sex or gender"
-				genderValues = getItemIdValueList(statementGroup);
-				break;
-			case "P31": // P31 is "instance of"
-				isHuman = containsValue(statementGroup, filterClass);
-				break;
+				case "P21": // P21 is "sex or gender"
+					genderValues = getItemIdValueList(statementGroup);
+					break;
+				case "P31": // P31 is "instance of"
+					isHuman = containsValue(statementGroup, filterClass);
+					break;
 			}
 		}
 
@@ -266,7 +246,7 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 
 			List<SiteRecord> siteRecords = new ArrayList<>(
 					this.siteRecords.values());
-			Collections.sort(siteRecords, new SiteRecordComparator());
+			siteRecords.sort(new SiteRecordComparator());
 			for (SiteRecord siteRecord : siteRecords) {
 				out.print(siteRecord.siteKey + "," + siteRecord.pageCount + ","
 						+ siteRecord.humanPageCount + ","
@@ -290,21 +270,15 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: GenderRatioProcessor");
 		System.out.println("*** ");
-		System.out
-				.println("*** This program will download and process dumps from Wikidata.");
-		System.out
-				.println("*** It will compute the numbers of articles about humans across");
-		System.out
-				.println("*** Wikimedia projects, and in particular it will count the articles");
-		System.out
-				.println("*** for each sex/gender. Results will be stored in a CSV file.");
+		System.out.println("*** This program will download and process dumps from Wikidata.");
+		System.out.println("*** It will compute the numbers of articles about humans across");
+		System.out.println("*** Wikimedia projects, and in particular it will count the articles");
+		System.out.println("*** for each sex/gender. Results will be stored in a CSV file.");
 		System.out.println("*** See source code for further details.");
-		System.out
-				.println("********************************************************************");
+		System.out.println("********************************************************************");
 	}
 
 	/**
@@ -314,12 +288,11 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 		System.out.println("*** Found " + genderItemCount
 				+ " items with gender within " + itemCount + " items.");
 
-		System.out
-				.println("*** Showing top ten sites with most items with gender data: ");
+		System.out.println("*** Showing top ten sites with most items with gender data: ");
 		int siteCount = 0;
 		List<SiteRecord> siteRecords = new ArrayList<>(
 				this.siteRecords.values());
-		Collections.sort(siteRecords, new SiteRecordComparator());
+		siteRecords.sort(new SiteRecordComparator());
 		for (SiteRecord siteRecord : siteRecords) {
 			if (siteCount >= 10) {
 				break;
@@ -352,19 +325,18 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 				genderCount++;
 			}
 
-			System.out
-					.println(" -- gender pages: "
-							+ siteRecord.humanGenderPageCount
-							+ ", human pages: "
-							+ siteRecord.humanPageCount
-							+ ", total pages: "
-							+ siteRecord.pageCount
-							+ ", ghp/hp: "
-							+ ((float) siteRecord.humanGenderPageCount
-									/ siteRecord.humanPageCount * 100)
-							+ "%, hp/p: "
-							+ ((float) siteRecord.humanPageCount
-									/ siteRecord.pageCount * 100) + "%");
+			System.out.println(" -- gender pages: "
+					+ siteRecord.humanGenderPageCount
+					+ ", human pages: "
+					+ siteRecord.humanPageCount
+					+ ", total pages: "
+					+ siteRecord.pageCount
+					+ ", ghp/hp: "
+					+ ((float) siteRecord.humanGenderPageCount
+					/ siteRecord.humanPageCount * 100)
+					+ "%, hp/p: "
+					+ ((float) siteRecord.humanPageCount
+					/ siteRecord.pageCount * 100) + "%");
 		}
 	}
 
@@ -372,8 +344,7 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * Helper method that extracts the list of all {@link ItemIdValue} objects
 	 * that are used as values in the given statement group.
 	 *
-	 * @param statementGroup
-	 *            the {@link StatementGroup} to extract the data from
+	 * @param statementGroup the {@link StatementGroup} to extract the data from
 	 * @return the list of values
 	 */
 	private List<EntityIdValue> getItemIdValueList(StatementGroup statementGroup) {
@@ -394,10 +365,8 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * Checks if the given group of statements contains the given value as the
 	 * value of a main snak of some statement.
 	 *
-	 * @param statementGroup
-	 *            the statement group to scan
-	 * @param value
-	 *            the value to scan for
+	 * @param statementGroup the statement group to scan
+	 * @param value          the value to scan for
 	 * @return true if value was found
 	 */
 	private boolean containsValue(StatementGroup statementGroup, Value value) {
@@ -413,10 +382,8 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	/**
 	 * Adds a new gender item and an initial name.
 	 *
-	 * @param entityIdValue
-	 *            the item representing the gender
-	 * @param name
-	 *            the label to use for representing the gender
+	 * @param entityIdValue the item representing the gender
+	 * @param name          the label to use for representing the gender
 	 */
 	private void addNewGenderName(EntityIdValue entityIdValue, String name) {
 		this.genderNames.put(entityIdValue, name);
@@ -427,8 +394,7 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * Returns a site record for the site of the given name, creating a new one
 	 * if it does not exist yet.
 	 *
-	 * @param siteKey
-	 *            the key of the site
+	 * @param siteKey the key of the site
 	 * @return the suitable site record
 	 */
 	private SiteRecord getSiteRecord(String siteKey) {
@@ -445,10 +411,8 @@ public class GenderRatioProcessor implements EntityDocumentProcessor {
 	 * of that gender on this site, a suitable key is added to the list of the
 	 * site's genders.
 	 *
-	 * @param gender
-	 *            the gender to count
-	 * @param siteRecord
-	 *            the site record to count it for
+	 * @param gender     the gender to count
+	 * @param siteRecord the site record to count it for
 	 */
 	private void countGender(EntityIdValue gender, SiteRecord siteRecord) {
 		Integer curValue = siteRecord.genderCounts.get(gender);
