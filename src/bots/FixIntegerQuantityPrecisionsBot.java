@@ -271,7 +271,7 @@ public class FixIntegerQuantityPrecisionsBot implements EntityDocumentProcessor 
 				if (qv != null && isPlusMinusOneValue(qv)) {
 					QuantityValue exactValue = Datamodel.makeQuantityValue(
 							qv.getNumericValue(), qv.getNumericValue(),
-							qv.getNumericValue(), "");
+							qv.getNumericValue(), qv.getUnitItemId());
 					Statement exactStatement = StatementBuilder
 							.forSubjectAndProperty(itemIdValue, property)
 							.withValue(exactValue).withId(s.getStatementId())

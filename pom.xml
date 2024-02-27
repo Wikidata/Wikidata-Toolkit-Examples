@@ -8,7 +8,7 @@
   
   <properties>
     <slf4jVersion>1.7.10</slf4jVersion>
-    <wikidataToolkitVersion>0.11.0</wikidataToolkitVersion>
+    <wikidataToolkitVersion>0.14.7</wikidataToolkitVersion>
   </properties>
   
   <dependencies>
