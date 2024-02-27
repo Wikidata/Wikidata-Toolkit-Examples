@@ -9,9 +9,9 @@ package examples;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,8 @@ package examples;
  * limitations under the License.
  * #L%
  */
+
+import java.io.*;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
@@ -28,15 +30,9 @@ import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
 import org.wikidata.wdtk.rdf.PropertyRegister;
 import org.wikidata.wdtk.rdf.RdfSerializer;
 
-import java.io.*;
-
 /**
- * This class shows how convert data from wikidata.org to RDF in N3 format. The
+ * This class shows how convert data from wikidata.org to RDF in N-Triples format. The
  * compressed output will be written into an output file.
- * <p>
- * The Wikidata Toolkit command line client provides a stand-alone tool for
- * generating RDF exports and it supports a range of parameters. This example is
- * merely used to illustrate how to achieve this from your own code if needed.
  *
  * @author Michael Günther
  * @author Markus Kroetzsch
@@ -59,44 +55,53 @@ public class RdfSerializationExample {
 
 		// Prepare a compressed output stream to write the data to
 		// (admittedly, this is slightly over-optimized for an example)
-		OutputStream bufferedFileOutputStream = new BufferedOutputStream(
-				ExampleHelpers
-						.openExampleFileOuputStream("wikidata-simple-statements.nt.gz"),
-				1024 * 1024 * 5);
-		GzipParameters gzipParameters = new GzipParameters();
-		gzipParameters.setCompressionLevel(7);
-		OutputStream compressorOutputStream = new GzipCompressorOutputStream(
-				bufferedFileOutputStream, gzipParameters);
-		OutputStream exportOutputStream = asynchronousOutputStream(compressorOutputStream);
+		try(OutputStream bufferedFileOutputStream = new BufferedOutputStream(
+				ExampleHelpers.openExampleFileOuputStream("wikidata-simple-statements.nt.gz"),
+				1024 * 1024 * 5
+		)) {
+			GzipParameters gzipParameters = new GzipParameters();
+			gzipParameters.setCompressionLevel(7);
+			OutputStream compressorOutputStream = new GzipCompressorOutputStream(
+					bufferedFileOutputStream, gzipParameters);
+			OutputStream exportOutputStream = asynchronousOutputStream(compressorOutputStream);
 
-		// Create a serializer processor
-		RdfSerializer serializer = new RdfSerializer(RDFFormat.NTRIPLES,
-				exportOutputStream, sites,
-				PropertyRegister.getWikidataPropertyRegister());
-		// Serialize simple statements (and nothing else) for all items
-		serializer.setTasks(RdfSerializer.TASK_ITEMS
-				| RdfSerializer.TASK_SIMPLE_STATEMENTS);
+			// Create a serializer processor
+			RdfSerializer serializer = new RdfSerializer(RDFFormat.NTRIPLES,
+					exportOutputStream, sites,
+					PropertyRegister.getWikidataPropertyRegister());
+			// Serialize simple statements (and nothing else) for all items
+			serializer.setTasks(RdfSerializer.TASK_ITEMS | RdfSerializer.TASK_ALL_ENTITIES
+					| RdfSerializer.TASK_SIMPLE_STATEMENTS);
 
-		// Run serialization
-		serializer.open();
-		ExampleHelpers.processEntitiesFromWikidataDump(serializer);
-		serializer.close();
+			// Run serialization
+			serializer.open();
+			ExampleHelpers.processEntitiesFromWikidataDump(serializer);
+			serializer.close();
+		}
+
 	}
 
 	/**
 	 * Print some basic documentation about this program.
 	 */
 	private static void printDocumentation() {
-		System.out.println("********************************************************************");
-		System.out.println("*** Wikidata Toolkit: RDF Serialization Example");
-		System.out.println("*** ");
-		System.out.println("*** This program will download dumps from Wikidata and serialize the data in a RDF format.");
-		System.out.println("*** Downloading may take some time initially. After that, files");
-		System.out.println("*** are stored on disk and are used until newer dumps are available.");
-		System.out.println("*** You can delete files manually when no longer needed (see ");
-		System.out.println("*** message below for the directory where dump files are found).");
-		System.out.println("********************************************************************");
-	}
+        System.out
+                .println("********************************************************************");
+        System.out.println("*** Wikidata Toolkit: RDF Serialization Example");
+        System.out.println("*** ");
+        System.out
+                .println("*** This program will download dumps from Wikidata and serialize the data in a RDF format.");
+        System.out
+                .println("*** Downloading may take some time initially. After that, files");
+        System.out
+                .println("*** are stored on disk and are used until newer dumps are available.");
+        System.out
+                .println("*** You can delete files manually when no longer needed (see ");
+        System.out
+                .println("*** message below for the directory where dump files are found).");
+        System.out
+                .println("********************************************************************");
+    }
 
 	/**
 	 * Creates a separate thread for writing into the given output stream and
@@ -107,19 +112,21 @@ public class RdfSerializationExample {
 	 * http://stackoverflow.com/questions/12532073/gzipoutputstream
 	 * -that-does-its-compression-in-a-separate-thread
 	 *
-	 * @param outputStream the stream to write to in the thread
+	 * @param outputStream
+	 *            the stream to write to in the thread
 	 * @return a new stream that data should be written to
-	 * @throws IOException if the pipes could not be created for some reason
+	 * @throws IOException
+	 *             if the pipes could not be created for some reason
 	 */
 	public static OutputStream asynchronousOutputStream(
 			final OutputStream outputStream) throws IOException {
 		final int SIZE = 1024 * 1024 * 10;
 		final PipedOutputStream pos = new PipedOutputStream();
 		final PipedInputStream pis = new PipedInputStream(pos, SIZE);
-		new Thread(() -> {
+		final Thread worker = new Thread(() -> {
 			try {
 				byte[] bytes = new byte[SIZE];
-				for (int len; (len = pis.read(bytes)) > 0; ) {
+				for (int len; (len = pis.read(bytes)) > 0;) {
 					outputStream.write(bytes, 0, len);
 				}
 			} catch (IOException ioException) {
@@ -128,13 +135,38 @@ public class RdfSerializationExample {
 				close(pis);
 				close(outputStream);
 			}
-		}, "async-output-stream").start();
-		return pos;
+		}, "async-output-stream");
+		return new SyncCloseOutputStream(pos, worker);
+	}
+
+
+	/**
+	 * Helper class that joins a thread on a call to close, to ensure that the output stream has really been closed.
+	 */
+	private static final class SyncCloseOutputStream extends FilterOutputStream {
+		private final Thread worker;
+
+		public SyncCloseOutputStream(OutputStream out, Thread worker) {
+			super(out);
+			this.worker = worker;
+		}
+
+		@Override
+		public void close() throws IOException {
+			super.close();
+			try {
+				worker.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
 	 * Closes a Closeable and swallows any exceptions that might occur in the
 	 * process.
+	 *
+	 * @param closeable
 	 */
 	static void close(Closeable closeable) {
 		if (closeable != null) {

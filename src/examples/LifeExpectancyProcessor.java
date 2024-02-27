@@ -9,9 +9,9 @@ package examples;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,10 @@ package examples;
  * #L%
  */
 
-import org.wikidata.wdtk.datamodel.interfaces.*;
+import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
+import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
+import org.wikidata.wdtk.datamodel.interfaces.StatementDocument;
+import org.wikidata.wdtk.datamodel.interfaces.TimeValue;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -35,6 +38,7 @@ import java.io.PrintStream;
  * sampled person is expected to die in the future.
  *
  * @author Markus Kroetzsch
+ *
  */
 public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	long totalPeopleCount = 0;
@@ -49,6 +53,7 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * Main method. Processes the whole dump using this processor and writes the
 	 * results to a file. To change which dump file to use and whether to run in
 	 * offline mode, modify the settings in {@link ExampleHelpers}.
+	 *
 	 */
 	public static void main(String[] args) {
 		ExampleHelpers.configureLogging();
@@ -64,7 +69,8 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 		int birthYear = getYearIfAny(itemDocument, "P569");
 		int deathYear = getYearIfAny(itemDocument, "P570");
 
-		if (deathYear != Integer.MIN_VALUE && birthYear >= 1200) {
+		if (birthYear != Integer.MIN_VALUE && deathYear != Integer.MIN_VALUE
+				&& birthYear >= 1200) {
 			// Do some more sanity checks to filter strange values:
 			if (deathYear > birthYear && deathYear - birthYear < 130) {
 				lifeSpans[birthYear] += (deathYear - birthYear);
@@ -80,11 +86,6 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 			printStatus();
 			printedStatus = true;
 		}
-	}
-
-	@Override
-	public void processPropertyDocument(PropertyDocument propertyDocument) {
-		// nothing to do for properties
 	}
 
 	/**
@@ -112,14 +113,19 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out.println("********************************************************************");
+		System.out
+				.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: LifeExpectancyProcessor");
 		System.out.println("*** ");
-		System.out.println("*** This program will download and process dumps from Wikidata.");
-		System.out.println("*** It will compute the average life expectancy of persons found");
-		System.out.println("*** In the data. Results will be stored in a CSV file.");
+		System.out
+				.println("*** This program will download and process dumps from Wikidata.");
+		System.out
+				.println("*** It will compute the average life expectancy of persons found");
+		System.out
+				.println("*** In the data. Results will be stored in a CSV file.");
 		System.out.println("*** See source code for further details.");
-		System.out.println("********************************************************************");
+		System.out
+				.println("********************************************************************");
 	}
 
 	/**
@@ -140,8 +146,10 @@ public class LifeExpectancyProcessor implements EntityDocumentProcessor {
 	 * any), and extracts an integer year. It checks if the value has sufficient
 	 * precision to extract an exact year.
 	 *
-	 * @param document   the document to extract the data from
-	 * @param propertyId string id of the property to look for
+	 * @param document
+	 *            the document to extract the data from
+	 * @param propertyId
+	 *            the string id of the property to look for
 	 * @return the year, or Interger.MIN_VALUE if none was found
 	 */
 	private int getYearIfAny(StatementDocument document, String propertyId) {

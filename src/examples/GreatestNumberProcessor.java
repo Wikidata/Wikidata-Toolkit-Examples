@@ -9,9 +9,9 @@ package examples;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,14 @@ package examples;
  * #L%
  */
 
-import org.wikidata.wdtk.datamodel.interfaces.*;
-
+import java.io.IOException;
 import java.math.BigDecimal;
+
+import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
+import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
+import org.wikidata.wdtk.datamodel.interfaces.ItemIdValue;
+import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
+import org.wikidata.wdtk.datamodel.interfaces.QuantityValue;
 
 /**
  * This simple {@link EntityDocumentProcessor} finds the greatest number
@@ -30,6 +35,7 @@ import java.math.BigDecimal;
  * value for {@link GreatestNumberProcessor#numberPropertyId}.
  *
  * @author Markus Kroetzsch
+ *
  */
 public class GreatestNumberProcessor implements EntityDocumentProcessor {
 
@@ -40,18 +46,21 @@ public class GreatestNumberProcessor implements EntityDocumentProcessor {
 	// P1128 is "employees", P1101 is "floors above ground"
 	// P1174 is "visitors per year", P1183 is "seat capacity"
 
-	private ItemIdValue largestNumberItem;
-	private String largestNumberItemLabel;
-	private BigDecimal largestNumberValue;
-	private int itemsWithPropertyCount = 0;
-	private int itemCount = 0;
+	ItemIdValue largestNumberItem;
+	String largestNumberItemLabel;
+	BigDecimal largestNumberValue;
+	int itemsWithPropertyCount = 0;
+	int itemCount = 0;
 
 	/**
 	 * Main method. Processes the whole dump using this processor. To change
 	 * which dump file to use and whether to run in offline mode, modify the
 	 * settings in {@link ExampleHelpers}.
+	 *
+	 * @param args
+	 * @throws IOException
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
 		GreatestNumberProcessor.printDocumentation();
 
@@ -93,15 +102,10 @@ public class GreatestNumberProcessor implements EntityDocumentProcessor {
 		}
 	}
 
-	@Override
-	public void processPropertyDocument(PropertyDocument propertyDocument) {
-		// Nothing to do
-	}
-
 	/**
 	 * Prints the current status, time and entity count.
 	 */
-	private void printStatus() {
+	public void printStatus() {
 		System.out.println("Found " + this.itemsWithPropertyCount
 				+ " matching items after scanning " + this.itemCount
 				+ " items.");
@@ -119,14 +123,18 @@ public class GreatestNumberProcessor implements EntityDocumentProcessor {
 	 * Prints some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out.println("********************************************************************");
+		System.out
+				.println("********************************************************************");
 		System.out.println("*** Wikidata Toolkit: GreatestNumberProcessor");
 		System.out.println("*** ");
-		System.out.println("*** This program will download and process dumps from Wikidata.");
-		System.out.println("*** It will scan the dump to find the item with the greatest value");
+		System.out
+				.println("*** This program will download and process dumps from Wikidata.");
+		System.out
+				.println("*** It will scan the dump to find the item with the greatest value");
 		System.out.println("*** for property " + numberPropertyId + ".");
 		System.out.println("*** See source code for further details.");
-		System.out.println("********************************************************************");
+		System.out
+				.println("********************************************************************");
 	}
 
 }

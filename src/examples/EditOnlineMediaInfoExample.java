@@ -22,7 +22,7 @@ package examples;
 
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.helpers.StatementBuilder;
-import org.wikidata.wdtk.datamodel.interfaces.MediaInfoDocument;
+import org.wikidata.wdtk.datamodel.interfaces.*;
 import org.wikidata.wdtk.wikibaseapi.ApiConnection;
 import org.wikidata.wdtk.wikibaseapi.BasicApiConnection;
 import org.wikidata.wdtk.wikibaseapi.WikibaseDataEditor;
@@ -44,6 +44,7 @@ import java.util.Collections;
  * <p>
  *
  * @author Thomas Pellissier Tanon
+ *
  */
 public class EditOnlineMediaInfoExample {
 
@@ -52,7 +53,7 @@ public class EditOnlineMediaInfoExample {
 	 * essential for API interactions (the API knows of only one site and will
 	 * use local ids only), but it is important to use a fixed IRI in your code
 	 * for each site and not to mix IRIs.
-	 * <p>
+	 *
 	 * For wikimedia Commons, use {@link Datamodel.SITE_WIKIMEDIA_COMMONS}.
 	 */
 	private final static String siteIri = "https://commons.wikimedia.beta.wmflabs.org/entity/";

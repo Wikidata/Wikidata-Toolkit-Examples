@@ -30,6 +30,7 @@ import java.io.IOException;
  * This example shows how to retrieve MediaInfo data from the API.
  *
  * @author Thomas Pellissier Tanon
+ *
  */
 public class OnlineMediaInfoExample {
 
@@ -47,9 +48,9 @@ public class OnlineMediaInfoExample {
 		System.out.println("Caption: " + mediaInfoDocument.getLabels().get("en").getText());
 
 		// Print the depict with labels from Wikidata:
-		for (Statement statement : mediaInfoDocument.findStatementGroup("P180").getStatements()) {
+		for(Statement statement : mediaInfoDocument.findStatementGroup("P180").getStatements()) {
 			Value value = statement.getValue();
-			if (value instanceof ItemIdValue) {
+			if(value instanceof ItemIdValue) {
 				ItemDocument depict = (ItemDocument) wikidataDataFetcher.getEntityDocument(((ItemIdValue) value).getId());
 				System.out.println("Depict: " + depict.getLabels().get("en").getText() + "(" + depict.getEntityId().getIri() + ")");
 			}

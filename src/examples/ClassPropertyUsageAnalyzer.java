@@ -9,9 +9,9 @@ package examples;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,17 +20,33 @@ package examples;
  * #L%
  */
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.wikidata.wdtk.datamodel.helpers.DatamodelConverter;
-import org.wikidata.wdtk.datamodel.implementation.DataObjectFactoryImpl;
-import org.wikidata.wdtk.datamodel.interfaces.*;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.wikidata.wdtk.datamodel.interfaces.DatatypeIdValue;
+import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
+import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
+import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
+import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
+import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
+import org.wikidata.wdtk.datamodel.interfaces.PropertyIdValue;
+import org.wikidata.wdtk.datamodel.interfaces.Reference;
+import org.wikidata.wdtk.datamodel.interfaces.SnakGroup;
+import org.wikidata.wdtk.datamodel.interfaces.Statement;
+import org.wikidata.wdtk.datamodel.interfaces.StatementGroup;
+import org.wikidata.wdtk.datamodel.interfaces.StringValue;
+import org.wikidata.wdtk.datamodel.interfaces.TermedDocument;
+import org.wikidata.wdtk.datamodel.interfaces.Value;
+import org.wikidata.wdtk.datamodel.interfaces.ValueSnak;
 
 /**
  * This advanced example analyses the use of properties and classes in a dump
@@ -50,11 +66,9 @@ import java.util.Map.Entry;
  * an advanced example, not as a first introduction.
  *
  * @author Markus Kroetzsch
+ *
  */
 public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
-
-	private final DataObjectFactory factory = new DataObjectFactoryImpl();
-	private final DatamodelConverter converter = new DatamodelConverter(factory);
 
 	/**
 	 * Set of top-level classes (without a superclass) that should be considered
@@ -69,7 +83,6 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * really "top level" in the current dump.
 	 */
 	private static final HashSet<String> TOP_LEVEL_CLASSES = new HashSet<>();
-
 	static {
 		TOP_LEVEL_CLASSES.add("Q35120"); // Entity
 		TOP_LEVEL_CLASSES.add("Q14897293"); // Fictional entity
@@ -100,6 +113,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Class to record the use of some class item or property.
 	 *
 	 * @author Markus Kroetzsch
+	 *
 	 */
 	private abstract static class UsageRecord {
 		/**
@@ -113,13 +127,14 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 		 * that use this entity (where "use" has the meaning explained for
 		 * {@link UsageRecord#itemCount}).
 		 */
-		public final HashMap<PropertyIdValue, Integer> propertyCoCounts = new HashMap<>();
+		public HashMap<PropertyIdValue, Integer> propertyCoCounts = new HashMap<>();
 	}
 
 	/**
 	 * Class to record the usage of a property in the data.
 	 *
 	 * @author Markus Kroetzsch
+	 *
 	 */
 	private static class PropertyRecord extends UsageRecord {
 		/**
@@ -149,6 +164,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Class to record the usage of a class item in the data.
 	 *
 	 * @author Markus Kroetzsch
+	 *
 	 */
 	private static class ClassRecord extends UsageRecord {
 		/**
@@ -162,7 +178,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 		/**
 		 * List of all super classes of this class.
 		 */
-		public final ArrayList<EntityIdValue> superClasses = new ArrayList<>();
+		public ArrayList<EntityIdValue> superClasses = new ArrayList<>();
 	}
 
 	/**
@@ -170,6 +186,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * subclasses.
 	 *
 	 * @author Markus Kroetzsch
+	 *
 	 */
 	private static class ClassUsageRecordComparator implements
 			Comparator<Entry<? extends EntityIdValue, ? extends ClassRecord>> {
@@ -187,6 +204,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * subclasses.
 	 *
 	 * @author Markus Kroetzsch
+	 *
 	 */
 	private static class UsageRecordComparator
 			implements
@@ -198,35 +216,35 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 			return (o2.getValue().itemCount + o2.getValue().qualifierCount + o2
 					.getValue().referenceCount)
 					- (o1.getValue().itemCount + o1.getValue().qualifierCount + o1
-					.getValue().referenceCount);
+							.getValue().referenceCount);
 		}
 	}
 
 	/**
 	 * Total number of items processed.
 	 */
-	private long countItems = 0;
+	long countItems = 0;
 	/**
 	 * Total number of items that have some statement.
 	 */
-	private long countPropertyItems = 0;
+	long countPropertyItems = 0;
 	/**
 	 * Total number of properties processed.
 	 */
-	private long countProperties = 0;
+	long countProperties = 0;
 	/**
 	 * Total number of items that are used as classes.
 	 */
-	private long countClasses = 0;
+	long countClasses = 0;
 
 	/**
 	 * Collection of all property records.
 	 */
-	private final HashMap<PropertyIdValue, PropertyRecord> propertyRecords = new HashMap<>();
+	final HashMap<PropertyIdValue, PropertyRecord> propertyRecords = new HashMap<>();
 	/**
 	 * Collection of all item records of items used as classes.
 	 */
-	private final HashMap<EntityIdValue, ClassRecord> classRecords = new HashMap<>();
+	final HashMap<EntityIdValue, ClassRecord> classRecords = new HashMap<>();
 
 	/**
 	 * Map used during serialization to ensure that every label is used only
@@ -234,7 +252,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * a label that is already assigned, it will use a label with an added Q-ID
 	 * for disambiguation.
 	 */
-	private final HashMap<String, EntityIdValue> labels = new HashMap<>();
+	final HashMap<String, EntityIdValue> labels = new HashMap<>();
 
 	/**
 	 * Main method. Processes the whole dump using this processor. To change
@@ -266,8 +284,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 		for (StatementGroup sg : itemDocument.getStatementGroups()) {
 			PropertyRecord propertyRecord = getPropertyRecord(sg.getProperty());
 			propertyRecord.itemCount++;
-			propertyRecord.statementCount = propertyRecord.statementCount
-					+ sg.getStatements().size();
+			propertyRecord.statementCount += sg.size();
 
 			boolean isInstanceOf = "P31".equals(sg.getProperty().getId());
 			boolean isSubclassOf = "P279".equals(sg.getProperty().getId());
@@ -275,28 +292,26 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 				classRecord = getClassRecord(itemDocument.getEntityId());
 			}
 
-			for (Statement s : sg.getStatements()) {
+			for (Statement s : sg) {
 				// Count uses of properties in qualifiers
-				for (SnakGroup q : s.getClaim().getQualifiers()) {
-					countPropertyQualifier(q.getProperty(), q.getSnaks().size());
+				for (SnakGroup q : s.getQualifiers()) {
+					countPropertyQualifier(q.getProperty(), q.size());
 				}
 				// Count statements with qualifiers
-				if (s.getClaim().getQualifiers().size() > 0) {
+				if (s.getQualifiers().size() > 0) {
 					propertyRecord.statementWithQualifierCount++;
 				}
 				// Count uses of properties in references
 				for (Reference r : s.getReferences()) {
 					for (SnakGroup snakGroup : r.getSnakGroups()) {
-						countPropertyReference(snakGroup.getProperty(),
-								snakGroup.getSnaks().size());
+						countPropertyReference(snakGroup.getProperty(), snakGroup.size());
 					}
 				}
 
 				// Process value of instance of/subclass of:
 				if ((isInstanceOf || isSubclassOf)
-						&& s.getClaim().getMainSnak() instanceof ValueSnak) {
-					Value value = ((ValueSnak) s.getClaim().getMainSnak())
-							.getValue();
+						&& s.getMainSnak() instanceof ValueSnak) {
+					Value value = s.getValue();
 					if (value instanceof EntityIdValue) {
 						ClassRecord otherClassRecord = getClassRecord((EntityIdValue) value);
 						if (isInstanceOf) {
@@ -317,7 +332,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 
 		if (classRecord != null) {
 			this.countClasses++;
-			classRecord.itemDocument = converter.copy(itemDocument);
+			classRecord.itemDocument = itemDocument;
 		}
 
 		// print a report once in a while:
@@ -334,8 +349,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
 		this.countProperties++;
 
-		PropertyRecord propertyRecord = getPropertyRecord(propertyDocument
-				.getEntityId());
+		PropertyRecord propertyRecord = getPropertyRecord(propertyDocument.getEntityId());
 		propertyRecord.propertyDocument = propertyDocument;
 	}
 
@@ -351,21 +365,29 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Print some basic documentation about this program.
 	 */
 	public static void printDocumentation() {
-		System.out.println("********************************************************************");
-		System.out.println("*** Wikidata Toolkit: Class and Property Usage Analyzer");
+		System.out
+				.println("********************************************************************");
+		System.out
+				.println("*** Wikidata Toolkit: Class and Property Usage Analyzer");
 		System.out.println("*** ");
-		System.out.println("*** This program will download and process dumps from Wikidata.");
-		System.out.println("*** It will create a CSV file with statistics about class and");
-		System.out.println("*** property useage. These files can be used with the Miga data");
+		System.out
+				.println("*** This program will download and process dumps from Wikidata.");
+		System.out
+				.println("*** It will create a CSV file with statistics about class and");
+		System.out
+				.println("*** property useage. These files can be used with the Miga data");
 		System.out.println("*** viewer to create the browser seen at ");
-		System.out.println("*** http://tools.wmflabs.org/wikidata-exports/miga/");
-		System.out.println("********************************************************************");
+		System.out
+				.println("*** http://tools.wmflabs.org/wikidata-exports/miga/");
+		System.out
+				.println("********************************************************************");
 	}
 
 	/**
 	 * Returns record where statistics about a class should be stored.
 	 *
-	 * @param entityIdValue the class to initialize
+	 * @param entityIdValue
+	 *            the class to initialize
 	 * @return the class record
 	 */
 	private ClassRecord getClassRecord(EntityIdValue entityIdValue) {
@@ -381,7 +403,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	/**
 	 * Returns record where statistics about a property should be stored.
 	 *
-	 * @param property the property to initialize
+	 * @param property
+	 *            the property to initialize
 	 * @return the property record
 	 */
 	private PropertyRecord getPropertyRecord(PropertyIdValue property) {
@@ -395,7 +418,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	}
 
 	private void countCooccurringProperties(ItemDocument itemDocument,
-											UsageRecord usageRecord, PropertyIdValue thisPropertyIdValue) {
+			UsageRecord usageRecord, PropertyIdValue thisPropertyIdValue) {
 		for (StatementGroup sg : itemDocument.getStatementGroups()) {
 			if (!sg.getProperty().equals(thisPropertyIdValue)) {
 				if (!usageRecord.propertyCoCounts.containsKey(sg.getProperty())) {
@@ -413,8 +436,10 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Counts additional occurrences of a property as qualifier property of
 	 * statements.
 	 *
-	 * @param property the property to count
-	 * @param count    the number of times to count the property
+	 * @param property
+	 *            the property to count
+	 * @param count
+	 *            the number of times to count the property
 	 */
 	private void countPropertyQualifier(PropertyIdValue property, int count) {
 		PropertyRecord propertyRecord = getPropertyRecord(property);
@@ -424,8 +449,10 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	/**
 	 * Counts additional occurrences of a property as property in references.
 	 *
-	 * @param property the property to count
-	 * @param count    the number of times to count the property
+	 * @param property
+	 *            the property to count
+	 * @param count
+	 *            the number of times to count the property
 	 */
 	private void countPropertyReference(PropertyIdValue property, int count) {
 		PropertyRecord propertyRecord = getPropertyRecord(property);
@@ -501,12 +528,15 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Prints the data for a single class to the given stream. This will be a
 	 * single line in CSV.
 	 *
-	 * @param out           the output to write to
-	 * @param classRecord   the class record to write
-	 * @param entityIdValue the item id that this class record belongs to
+	 * @param out
+	 *            the output to write to
+	 * @param classRecord
+	 *            the class record to write
+	 * @param entityIdValue
+	 *            the item id that this class record belongs to
 	 */
 	private void printClassRecord(PrintStream out, ClassRecord classRecord,
-								  EntityIdValue entityIdValue) throws UnsupportedEncodingException {
+			EntityIdValue entityIdValue) {
 		printTerms(out, classRecord.itemDocument, entityIdValue, "\""
 				+ getClassLabel(entityIdValue) + "\"");
 		printImage(out, classRecord.itemDocument);
@@ -533,8 +563,10 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Standard CSV processors do not support lists of entries as values,
 	 * however.
 	 *
-	 * @param out     the output to write to
-	 * @param classes the list of class items
+	 * @param out
+	 *            the output to write to
+	 * @param classes
+	 *            the list of class items
 	 */
 	private void printClassList(PrintStream out, Iterable<EntityIdValue> classes) {
 		out.print(",\"");
@@ -552,7 +584,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	}
 
 	private void addSuperClasses(EntityIdValue itemIdValue,
-								 HashSet<EntityIdValue> superClasses) {
+			HashSet<EntityIdValue> superClasses) {
 		if (superClasses.contains(itemIdValue)) {
 			return;
 		}
@@ -572,15 +604,19 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * will lead to several values in the CSV file, which are the same for
 	 * properties and class items.
 	 *
-	 * @param out            the output to write to
-	 * @param termedDocument the document that provides the terms to write
-	 * @param entityIdValue  the entity that the data refers to.
-	 * @param specialLabel   special label to use (rather than the label string in the
-	 *                       document) or null if not using; used by classes, which need to
-	 *                       support disambiguation in their labels
+	 * @param out
+	 *            the output to write to
+	 * @param termedDocument
+	 *            the document that provides the terms to write
+	 * @param entityIdValue
+	 *            the entity that the data refers to.
+	 * @param specialLabel
+	 *            special label to use (rather than the label string in the
+	 *            document) or null if not using; used by classes, which need to
+	 *            support disambiguation in their labels
 	 */
 	private void printTerms(PrintStream out, TermedDocument termedDocument,
-							EntityIdValue entityIdValue, String specialLabel) {
+			EntityIdValue entityIdValue, String specialLabel) {
 		String label = specialLabel;
 		String description = "-";
 
@@ -611,10 +647,12 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Prints the URL of a thumbnail for the given item document to the output,
 	 * or a default image if no image is given for the item.
 	 *
-	 * @param out          the output to write to
-	 * @param itemDocument the document that may provide the image information
+	 * @param out
+	 *            the output to write to
+	 * @param itemDocument
+	 *            the document that may provide the image information
 	 */
-	private void printImage(PrintStream out, ItemDocument itemDocument) throws UnsupportedEncodingException {
+	private void printImage(PrintStream out, ItemDocument itemDocument) {
 		String imageFile = null;
 
 		if (itemDocument != null) {
@@ -623,10 +661,9 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 				if (!isImage) {
 					continue;
 				}
-				for (Statement s : sg.getStatements()) {
-					if (s.getClaim().getMainSnak() instanceof ValueSnak) {
-						Value value = ((ValueSnak) s.getClaim().getMainSnak())
-								.getValue();
+				for (Statement s : sg) {
+					if (s.getMainSnak() instanceof ValueSnak) {
+						Value value = ((ValueSnak)s.getMainSnak()).getValue();
 						if (value instanceof StringValue) {
 							imageFile = ((StringValue) value).getString();
 							break;
@@ -642,15 +679,20 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 		if (imageFile == null) {
 			out.print(",\"http://commons.wikimedia.org/w/thumb.php?f=MA_Route_blank.svg&w=50\"");
 		} else {
-			String imageFileEncoded;
-			imageFileEncoded = URLEncoder.encode(
-					imageFile.replace(" ", "_"), "utf-8");
-			// Keep special title symbols unescaped:
-			imageFileEncoded = imageFileEncoded.replace("%3A", ":")
-					.replace("%2F", "/");
-			out.print(","
-					+ csvStringEscape("http://commons.wikimedia.org/w/thumb.php?f="
-					+ imageFileEncoded) + "&w=50");
+			try {
+				String imageFileEncoded;
+				imageFileEncoded = URLEncoder.encode(
+						imageFile.replace(" ", "_"), "utf-8");
+				// Keep special title symbols unescaped:
+				imageFileEncoded = imageFileEncoded.replace("%3A", ":")
+						.replace("%2F", "/");
+				out.print(","
+						+ csvStringEscape("http://commons.wikimedia.org/w/thumb.php?f="
+								+ imageFileEncoded) + "&w=50");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(
+						"Your JRE does not support UTF-8 encoding. Srsly?!", e);
+			}
 		}
 	}
 
@@ -658,12 +700,15 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Prints the data of one property to the given output. This will be a
 	 * single line in CSV.
 	 *
-	 * @param out             the output to write to
-	 * @param propertyRecord  the data to write
-	 * @param propertyIdValue the property that the data refers to
+	 * @param out
+	 *            the output to write to
+	 * @param propertyRecord
+	 *            the data to write
+	 * @param propertyIdValue
+	 *            the property that the data refers to
 	 */
 	private void printPropertyRecord(PrintStream out,
-									 PropertyRecord propertyRecord, PropertyIdValue propertyIdValue) {
+			PropertyRecord propertyRecord, PropertyIdValue propertyIdValue) {
 
 		printTerms(out, propertyRecord.propertyDocument, propertyIdValue, null);
 
@@ -687,7 +732,7 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 				+ propertyRecord.referenceCount
 				+ ","
 				+ (propertyRecord.statementCount
-				+ propertyRecord.qualifierCount + propertyRecord.referenceCount));
+						+ propertyRecord.qualifierCount + propertyRecord.referenceCount));
 
 		printRelatedProperties(out, propertyRecord);
 
@@ -697,40 +742,41 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	/**
 	 * Returns an English label for a given datatype.
 	 *
-	 * @param datatype the datatype to label
+	 * @param datatype
+	 *            the datatype to label
 	 * @return the label
 	 */
 	private String getDatatypeLabel(DatatypeIdValue datatype) {
 		if (datatype.getIri() == null) { // TODO should be redundant once the
-			// JSON parsing works
+											// JSON parsing works
 			return "Unknown";
 		}
 
-		switch (datatype.getIri()) {
-			case DatatypeIdValue.DT_COMMONS_MEDIA:
-				return "Commons media";
-			case DatatypeIdValue.DT_GLOBE_COORDINATES:
-				return "Globe coordinates";
-			case DatatypeIdValue.DT_ITEM:
-				return "Item";
-			case DatatypeIdValue.DT_QUANTITY:
-				return "Quantity";
-			case DatatypeIdValue.DT_STRING:
-				return "String";
-			case DatatypeIdValue.DT_TIME:
-				return "Time";
-			case DatatypeIdValue.DT_URL:
-				return "URL";
-			case DatatypeIdValue.DT_PROPERTY:
-				return "Property";
-			case DatatypeIdValue.DT_EXTERNAL_ID:
-				return "External identifier";
-			case DatatypeIdValue.DT_MATH:
-				return "Math";
-			case DatatypeIdValue.DT_MONOLINGUAL_TEXT:
-				return "Monolingual Text";
-			default:
-				throw new RuntimeException("Unknown datatype " + datatype.getIri());
+		switch (datatype.getJsonString()) {
+		case DatatypeIdValue.JSON_DT_COMMONS_MEDIA:
+			return "Commons media";
+		case DatatypeIdValue.JSON_DT_GLOBE_COORDINATES:
+			return "Globe coordinates";
+		case DatatypeIdValue.JSON_DT_ITEM:
+			return "Item";
+		case DatatypeIdValue.JSON_DT_QUANTITY:
+			return "Quantity";
+		case DatatypeIdValue.JSON_DT_STRING:
+			return "String";
+		case DatatypeIdValue.JSON_DT_TIME:
+			return "Time";
+		case DatatypeIdValue.JSON_DT_URL:
+			return "URL";
+		case DatatypeIdValue.JSON_DT_PROPERTY:
+			return "Property";
+		case DatatypeIdValue.JSON_DT_EXTERNAL_ID:
+			return "External identifier";
+		case DatatypeIdValue.JSON_DT_MATH:
+			return "Math";
+		case DatatypeIdValue.JSON_DT_MONOLINGUAL_TEXT:
+			return "Monolingual Text";
+		default:
+			throw new RuntimeException("Unknown datatype " + datatype.getJsonString());
 		}
 	}
 
@@ -740,8 +786,10 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Standard CSV processors do not support lists of entries as values,
 	 * however.
 	 *
-	 * @param out         the output to write to
-	 * @param usageRecord the data to write
+	 * @param out
+	 *            the output to write to
+	 * @param usageRecord
+	 *            the data to write
 	 */
 	private void printRelatedProperties(PrintStream out, UsageRecord usageRecord) {
 
@@ -786,7 +834,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	/**
 	 * Returns a string that should be used as a label for the given property.
 	 *
-	 * @param propertyIdValue the property to label
+	 * @param propertyIdValue
+	 *            the property to label
 	 * @return the label
 	 */
 	private String getPropertyLabel(PropertyIdValue propertyIdValue) {
@@ -804,7 +853,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * method also ensures that each label is used for only one class. Other
 	 * classes with the same label will have their QID added for disambiguation.
 	 *
-	 * @param entityIdValue the item to label
+	 * @param entityIdValue
+	 *            the item to label
 	 * @return the label
 	 */
 	private String getClassLabel(EntityIdValue entityIdValue) {
@@ -833,12 +883,14 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * it will not be put in quotes (since this is not appropriate in all
 	 * contexts where this method is used).
 	 *
-	 * @param entityIdValue  the entity to label
-	 * @param termedDocument the document to get labels from
+	 * @param entityIdValue
+	 *            the entity to label
+	 * @param termedDocument
+	 *            the document to get labels from
 	 * @return the label
 	 */
 	private String getLabel(EntityIdValue entityIdValue,
-							TermedDocument termedDocument) {
+			TermedDocument termedDocument) {
 		MonolingualTextValue labelValue = termedDocument.getLabels().get("en");
 		if (labelValue != null) {
 			return labelValue.getText().replace("\"", "\"\"");
@@ -851,7 +903,8 @@ public class ClassPropertyUsageAnalyzer implements EntityDocumentProcessor {
 	 * Escapes a string for use in CSV. In particular, the string is quoted and
 	 * quotation marks are escaped.
 	 *
-	 * @param string the string to escape
+	 * @param string
+	 *            the string to escape
 	 * @return the escaped string
 	 */
 	private String csvStringEscape(String string) {
