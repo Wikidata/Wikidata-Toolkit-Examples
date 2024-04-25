@@ -54,7 +54,23 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 public class FetchOnlineDataExampleUpdate {
 
   public static void main(String[] args) throws MediaWikiApiErrorException, IOException {
-
+    ExampleHelpers.configureLogging();
+    FetchOnlineDataExampleUpdate.printDocumentation();
   }
 
+  /**
+   * Prints some basic documentation about this program.
+   */
+  public static void printDocumentation() {
+    System.out
+        .println("********************************************************************");
+    System.out.println("*** Wikidata Toolkit: FetchOnlineDataExample");
+    System.out.println("*** ");
+    System.out
+        .println("*** This application demonstrates fetching data from Wikidata.org and covers finding: single entities, multiple entites, and applying various filters to reduce the volume of data fetched.");
+    System.out.println("*** It does not download any dump files.");
+    System.out
+        .println("********************************************************************");
+
+  }
 }
