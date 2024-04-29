@@ -106,13 +106,13 @@ public class FetchOnlineDataExampleUpdate {
   }
 
   /**
-   * This method writes an array of EntityDocument objects to a file. It uses a PrintStream to write each 
-   * EntityDocument to the file specified by fileName. If an IOException occurs during this process, it prints 
-   * the stack trace.
-   *
-   * @param entityDocuments An array of EntityDocument objects to be written to the file.
-   * @param fileName The name of the file to which the entity data will be written.
-   */
+  * This method writes an array of EntityDocument objects to a file. It uses a PrintStream to write each 
+  * EntityDocument to the file specified by fileName. If an IOException occurs during this process, it prints 
+  * the stack trace.
+  *
+  * @param entityDocuments An array of EntityDocument objects to be written to the file.
+  * @param fileName The name of the file to which the entity data will be written.
+  */
   private static void writeEntityDataToFile(EntityDocument[] entityDocuments, String fileName) {
     try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream(fileName))) {
       for (EntityDocument entityDocument : entityDocuments) {
@@ -124,13 +124,13 @@ public class FetchOnlineDataExampleUpdate {
   }
 
   /**
-   * This method writes a single EntityDocument object to a file. It uses a PrintStream to write the 
-   * EntityDocument to the file specified by fileName. If an IOException occurs during this process, it prints 
-   * the stack trace.
-   *
-   * @param entityDocument An EntityDocument object to be written to the file.
-   * @param fileName The name of the file to which the entity data will be written.
-   */
+  * This method writes a single EntityDocument object to a file. It uses a PrintStream to write the 
+  * EntityDocument to the file specified by fileName. If an IOException occurs during this process, it prints 
+  * the stack trace.
+  *
+  * @param entityDocument An EntityDocument object to be written to the file.
+  * @param fileName The name of the file to which the entity data will be written.
+  */
   private static void writeEntityDataToFile(EntityDocument entityDocument, String fileName) {
     try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream(fileName))) {
       out.println(entityDocument);
