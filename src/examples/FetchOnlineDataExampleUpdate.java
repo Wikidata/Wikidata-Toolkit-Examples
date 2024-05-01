@@ -35,14 +35,17 @@ import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
 /**
- * This example demonstrates fetching data from the Wikidata.org API and covers fetching entity data, and applying various filters to reduce the volume of data returned. 
- * 
+  * This example demonstrates fetching data from the Wikidata.org API including fetching entity data and applying various filters to reduce the volume of data returned. 
+  * 
+  * This example does not download any dump files.
  *<ul>
   * <li> Fetching data for a single entity and multiple entities, using entity Qids (e.g. "Q42" and "P31"). </li>
-  * <li>Fetching by Page Title: Fetches data for a single entity with the page titles (e.g. "Terry Pratchett" on English Wikipedia), then prints the correspinding Qid. </li>
-  *<li> Searching for Entities: Searches for entities using a search term (e.g. "Douglas Adams") and which language Wiki to search (e.g. "fr"),  then prints the Qids and labels of the search results. </li>
-  * <li> Fetching data for entities applying filters: This example shows how to apply filters to reduce the volume of fetched data. It sets filters for: site links, language, and propertities, then fetches data for a single entity with Qid "Q8", then prints its French label and English Wikipedia page title. </li>
+  * <li> Fetching by Page Title: Fetches data for a single entity with the page titles (e.g. "Terry Pratchett" on English Wikipedia), then prints the correspinding Qid. </li>
+  * <li> Searching for Entities: Searches for entities using a search term (e.g. "Douglas Adams") and which language Wiki (or "iri") to search (e.g. "fr"), then prints the Qids and labels of the search results. </li>
+  * <li> Fetching data for entities and applying filters to limit the volume of data returned. It sets filters for: site links, language, and propertities, then fetches data for a single entity with Qid "Q8", then prints its French label and English Wikipedia page title. </li>
   *</ul>
+  * 
+  * @implNote The results are written to the "/results/" directory in the project root.
   *
   * @throws MediaWikiApiErrorException
   * @throws IOException
@@ -93,15 +96,15 @@ public class FetchOnlineDataExampleUpdate {
   }
 
   /**
-   * This method fetches data for a single entity from the Wikidata.org API using an entities title.
-   * The fetched data is then written to a file and the Qid's and labels of the search results are printed to the console.
-   * 
-   * @param wbdf An instance of WikibaseDataFetcher that is used to fetch the data.
-   * @throws MediaWikiApiErrorException If there is an error while fetching the data from the API.
-   * @throws IOException If there is an error while writing the fetched data to a file.
-   * 
-   * @see #WikibaseDataFetcher.getEntityDocumentByTitle(String siteIri, String pageTitle)
-   */
+  * This method fetches data for a single entity from the Wikidata.org API using an entities title.
+  * The fetched data is then written to a file and the Qid's and labels of the search results are printed to the console.
+  * 
+  * @param wbdf An instance of WikibaseDataFetcher that is used to fetch the data.
+  * @throws MediaWikiApiErrorException If there is an error while fetching the data from the API.
+  * @throws IOException If there is an error while writing the fetched data to a file.
+  * 
+  * @see #WikibaseDataFetcher.getEntityDocumentByTitle(String siteIri, String pageTitle)
+  */
   public static void fetchEntitiesByTitles(WikibaseDataFetcher wbdf) throws MediaWikiApiErrorException, IOException {
     System.out.println("*** Fetching data based on page title:");
 
@@ -133,7 +136,7 @@ public class FetchOnlineDataExampleUpdate {
   }
 
   /**
-  * This method fetches data for a single entity, then applies filters by selecting only site links from English Wikipedia, labels in French, which have no statements at all.
+  * This method fetches data for a single entity, then applies filters by selecting only site links from English Wikipedia, and labels in French which have no statements at all.
   * The fetched data is then written to a file and the French label and English Wikipedia page title are printed to the console.
   *
   * @param wbdf An instance of WikibaseDataFetcher that is used to fetch the data.
@@ -144,8 +147,7 @@ public class FetchOnlineDataExampleUpdate {
       throws MediaWikiApiErrorException, IOException {
     System.out.println("*** Fetching data for entities applying filters:");
 
-    //? Filters can be applied to reduce the volume of fetched data.
-    //? Filters can be set for site links, language, and properties.
+    // apply filters to the data fetched
     wbdf.getFilter().setSiteLinkFilter(Collections.singleton("enwiki")); // Only site links from English Wikipedia
     wbdf.getFilter().setLanguageFilter(Collections.singleton("fr")); // Only labels in French
     wbdf.getFilter().setPropertyFilter(Collections.emptySet()); // No statements at all
@@ -170,6 +172,8 @@ public class FetchOnlineDataExampleUpdate {
   *
   * @param entityDocument An EntityDocument object to be written to the file.
   * @param fileName The name of the file to which the entity data will be written.
+  *
+  * @implNote The file is written to the "/results/" directory in the project root.
   */
   private static void writeEntityDataToFile(EntityDocument entityDocument, String fileName) {
     try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream(fileName))) {
