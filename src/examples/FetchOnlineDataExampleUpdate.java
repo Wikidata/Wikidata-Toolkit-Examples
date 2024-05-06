@@ -54,6 +54,7 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
  */
 
 public class FetchOnlineDataExampleUpdate {
+  private static boolean printOutputToResultsDirectory = false; // set to true to print the output in the results directory 
 
   public static void main(String[] args) throws MediaWikiApiErrorException, IOException {
     ExampleHelpers.configureLogging();
@@ -65,7 +66,7 @@ public class FetchOnlineDataExampleUpdate {
 
     fetchEntityDataByQid(wbdf); // get entities using their Qids...
     fetchEntitiesByTitles(wbdf); // get entities using their page titles...
-    fetchEntityBySearchTerm(wbdf); // search for entities using query text...
+    fetchEntityResultBySearchTerm(wbdf); // search entities using query text...
     fetchEntityAndApplyFilters(wbdf); // get entities applying filters...
   }
 
@@ -120,23 +121,27 @@ public class FetchOnlineDataExampleUpdate {
   }
 
   /**
-  * This method fetches data for a single entity from the Wikidata.org API using a search term and language target or iri.
+  * This method fetches data for a single entity from the Wikidata.org API using a search term and language target (a.k.a iri).
   * The fetched data's Qid and labels are then printed to the console.
   * 
   * @param wbdf An instance of WikibaseDataFetcher that is used to fetch the data.
   * @throws MediaWikiApiErrorException If there is an error while fetching the data from the API.
   * @throws IOException If there is an error while writing the fetched data to a file.
   */
-  public static void fetchEntityBySearchTerm(WikibaseDataFetcher wbdf) throws MediaWikiApiErrorException, IOException {
-    System.out.println("*** Searching for entities:");
-    for (WbSearchEntitiesResult result : wbdf.searchEntities("Douglas Adams", "fr")) {
-      System.out.println("Found entity " + result.getTitle() + " with Qid "
-          + result.getEntityId());
+  public static void fetchEntityResultBySearchTerm(WikibaseDataFetcher wbdf)
+      throws MediaWikiApiErrorException, IOException {
+    System.out.println("*** Searching for entities matching: 'Douglas Adams' ");
+    try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream("search-results.txt"))) {
+      for (WbSearchEntitiesResult result : wbdf.searchEntities("Douglas Adams", "fr")) {
+        writeSearchResultsToFile(result, out);
+        System.out.println("Found result " + result.getLabel() + " with Qid " + result.getTitle() + ".");
+      }
     }
+    System.out.println("Search results written to file search-results.txt");
   }
 
   /**
-  * This method fetches data for a single entity, then applies filters by selecting only site links from English Wikipedia, and labels in French which have no statements at all.
+  * This method fetches data for a single entity, then applies filters to limit the data by selecting only site links from English Wikipedia, and labels in French which have no statements at all.
   * The fetched data is then written to a file and the French label and English Wikipedia page title are printed to the console.
   *
   * @param wbdf An instance of WikibaseDataFetcher that is used to fetch the data.
@@ -147,7 +152,7 @@ public class FetchOnlineDataExampleUpdate {
       throws MediaWikiApiErrorException, IOException {
     System.out.println("*** Fetching data for entities applying filters:");
 
-    // apply filters to the data fetched
+    // apply filters to fetched data to limit results
     wbdf.getFilter().setSiteLinkFilter(Collections.singleton("enwiki")); // Only site links from English Wikipedia
     wbdf.getFilter().setLanguageFilter(Collections.singleton("fr")); // Only labels in French
     wbdf.getFilter().setPropertyFilter(Collections.emptySet()); // No statements at all
@@ -176,10 +181,37 @@ public class FetchOnlineDataExampleUpdate {
   * @implNote The file is written to the "/results/" directory in the project root.
   */
   private static void writeEntityDataToFile(EntityDocument entityDocument, String fileName) {
-    try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream(fileName))) {
-      out.println(entityDocument);
-    } catch (IOException e) {
-      e.printStackTrace();
+    if (!printOutputToResultsDirectory) {
+      System.out.println(entityDocument);
+    } else {
+      try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream(fileName))) {
+        out.println(entityDocument);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Writes the search results to the specified PrintStream.
+   *
+   * @param result The WbSearchEntitiesResult object containing the search results.
+   * @param out The PrintStream to write the results to.
+   */
+  private static void writeSearchResultsToFile(WbSearchEntitiesResult result, PrintStream out) {
+    String output = "RESULT " + result.getTitle() + " DETAILS:" +
+        "\nconcept_uri:" + result.getConceptUri() +
+        "\ndescription:" + result.getDescription() +
+        "\nentity_ID:" + result.getEntityId() +
+        "\nlabel:" + result.getLabel() +
+        "\npage_ID:" + result.getPageId() +
+        "\nQID:" + result.getTitle() +
+        "\nURL:" + result.getUrl() +
+        "\n";
+    if (!printOutputToResultsDirectory) {
+      System.out.println(output);
+    } else {
+      out.println(output);
     }
   }
 
@@ -197,6 +229,5 @@ public class FetchOnlineDataExampleUpdate {
     System.out.println("*** It does not download any dump files.");
     System.out
         .println("********************************************************************");
-
   }
 }
