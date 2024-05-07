@@ -21,6 +21,7 @@ package examples;
  */
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
  */
 
 public class FetchOnlineDataExample {
+	private static boolean printDataToResultsDirectory = false; // Set to true to write the full data output to the 'results' directory.
+
 	public static void main(String[] args) throws MediaWikiApiErrorException, IOException {
 		ExampleHelpers.configureLogging();
 		FetchOnlineDataExample.printDocumentation();
@@ -80,7 +83,9 @@ public class FetchOnlineDataExample {
 		if (entityDocument instanceof ItemDocument) {
 			System.out.println("The English name for entity Q42 is: "
 					+ ((ItemDocument) entityDocument).getLabels().get("en").getText());
+			writeEntityDataToFile(entityDocument, "single-entity.txt");
 		}
+
 	}
 
 	/**
@@ -97,6 +102,7 @@ public class FetchOnlineDataExample {
 		for (Entry<String, EntityDocument> entry : entityDocuments.entrySet()) {
 			System.out.println("The QID for the entity with page title \""
 					+ entry.getKey() + "\" is: " + entry.getValue().getEntityId().getId());
+			writeEntityDataToFile(entry.getValue(), "multiple-entities-" + entry.getKey() + ".txt");
 		}
 	}
 
@@ -110,9 +116,14 @@ public class FetchOnlineDataExample {
 
 		// Search for entities using a search term and language code.
 		List<WbSearchEntitiesResult> searchResults = wbdf.searchEntities("Douglas Adams", "fr");
-		for (WbSearchEntitiesResult result : searchResults) {
-			System.out.println("Found entity with QID " + result.getEntityId() + " and label \""
-					+ result.getLabel() + "\".");
+		if (printDataToResultsDirectory) {
+			try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream("search-results.txt"))) {
+				for (WbSearchEntitiesResult result : searchResults) {
+					writeSearchResutlsToFile(result, out);
+					System.out.println("Found entity with QID " + result.getEntityId() + " and label \""
+							+ result.getLabel() + "\".");
+				}
+			}
 		}
 	}
 
@@ -136,6 +147,49 @@ public class FetchOnlineDataExample {
 					+ ((ItemDocument) q8).getLabels().get("fr").getText()
 					+ "\nand its English Wikipedia page has the title "
 					+ ((ItemDocument) q8).getSiteLinks().get("enwiki").getPageTitle() + ".");
+			writeEntityDataToFile(q8, "filtered-entity.txt");
+		}
+	}
+
+	/**
+	 * Uses a PrintStream and the included ExampleHelpers class to write the entity data to the included file name.
+	 * 
+	 * @param entityDocument The entity document to write to the file.
+	 * @param fileName The name of the file to write the entity data to.
+	 */
+	private static void writeEntityDataToFile(EntityDocument entityDocument, String fileName) {
+		if (!printDataToResultsDirectory) // skip writing to file if not enabled
+			return;
+
+		try (PrintStream out = new PrintStream(ExampleHelpers.openExampleFileOuputStream(fileName))) {
+			out.println(entityDocument);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	* Writes the search results to the specified PrintStream.
+	*
+	* @param result The WbSearchEntitiesResult object containing the search results.
+	* @param out The PrintStream to write the results to.
+	*/
+	private static void writeSearchResutlsToFile(WbSearchEntitiesResult result, PrintStream out) {
+		if (!printDataToResultsDirectory) // skip writing to file if not enabled
+			return;
+
+		String output = "RESULT " + result.getTitle() + " DETAILS:" +
+				"\nconcept_uri:" + result.getConceptUri() +
+				"\ndescription:" + result.getDescription() +
+				"\nentity_ID:" + result.getEntityId() +
+				"\nlabel:" + result.getLabel() +
+				"\npage_ID:" + result.getPageId() +
+				"\nQID:" + result.getTitle() +
+				"\nURL:" + result.getUrl() +
+				"\n";
+
+		if (printDataToResultsDirectory) {
+			out.println(output);
 		}
 	}
 
