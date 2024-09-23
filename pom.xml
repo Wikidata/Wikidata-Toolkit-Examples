@@ -9,7 +9,7 @@
   <properties>
     <slf4jVersion>2.0.12</slf4jVersion>
     <log4jVersion>2.22.1</log4jVersion>
-    <wikidataToolkitVersion>0.15.3</wikidataToolkitVersion>
+    <wikidataToolkitVersion>0.16.0</wikidataToolkitVersion>
   </properties>
   
   <dependencies>
